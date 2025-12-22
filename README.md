@@ -20,6 +20,9 @@ pip install -r requirements.txt
 Create `.env.local`, `.env.dev`, or `.env.production` based on your environment:
 
 ```bash
+# kill port if in use
+kill -9 $(lsof -ti:8000)
+
 # Environment: local | dev | production
 ENVIRONMENT=local
 

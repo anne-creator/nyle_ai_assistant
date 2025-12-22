@@ -1,5 +1,15 @@
-from app.api.client import BaseAPIClient
-from app.api.nyle_api import NyleAPI
-from app.api.instance import nyle_api
+"""
+Metrics Access Layer
 
-__all__ = ["BaseAPIClient", "NyleAPI", "nyle_api"]
+Data access layer for Nyle math backend APIs.
+
+Usage:
+    from app.metricsAccessLayer import metrics_api
+    
+    result = await metrics_api.get_financial_summary("2025-10-01", "2025-10-31")
+"""
+
+from app.metricsAccessLayer.math_metric_retriver import MathMetricRetriever, metrics_api
+from app.metricsAccessLayer.BaseAPIClient import BaseAPIClient
+
+__all__ = ["MathMetricRetriever", "BaseAPIClient", "metrics_api"]

@@ -1,25 +1,26 @@
 """
-math_metric_retriver - Data Access Layer
+Math Metric Retriever - Data Access Layer with Singleton Pattern
 
-This module provides a clean interface to all math backend APIs.
-Each method handles one endpoint and returns structured data.
+All 6 Nyle backend API endpoints in one place.
+Singleton pattern ensures only one instance is created.
 
-Usage in handler tools:
-    api = NyleBackendAPI()
-    result = await api.get_ads_executive_summary(date_start, date_end)
+Usage anywhere in your project:
+    from app.metricsAccessLayer.math_metric_retriver import metrics_api
+    
+    result = await metrics_api.get_financial_summary("2025-10-01", "2025-10-31")
 """
 
 from typing import Optional
 import logging
 
-from app.api.client import BaseAPIClient
+from app.metricsAccessLayer.BaseAPIClient import BaseAPIClient
 
 logger = logging.getLogger(__name__)
 
 
-class math_metric_retriver:
+class MathMetricRetriever:
     """
-    Data access layer for Nyle backend APIs.
+    Singleton data access layer for Nyle math backend APIs.
     
     Automatically handles:
     - JWT authentication (from RequestContext)
@@ -27,9 +28,23 @@ class math_metric_retriver:
     - HTTP error handling
     """
     
-    def __init__(self):
-        self.client = BaseAPIClient()
+    _instance = None
     
+    def __new__(cls):
+        """Singleton pattern - only create one instance."""
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._initialized = False
+        return cls._instance
+    
+    def __init__(self):
+        """Initialize only once."""
+        if self._initialized:
+            return
+        self.client = BaseAPIClient()
+        self._initialized = True
+    
+    # ========== API 1: Ads Executive Summary ==========
     async def get_ads_executive_summary(
         self,
         date_start: str,
@@ -37,19 +52,9 @@ class math_metric_retriver:
         saturation: int = 0
     ) -> dict:
         """
-        Fetch ads executive summary metrics.
+        GET /math/ads/executive-summary
         
-        Args:
-            date_start: Start date in YYYY-MM-DD format
-            date_end: End date in YYYY-MM-DD format
-            saturation: Saturation level (default: 0)
-            
-        Returns:
-            Dict with ads summary metrics
-            
-        Example:
-            api = NyleBackendAPI()
-            result = await api.get_ads_executive_summary("2025-10-01", "2025-10-03")
+        Returns advertising metrics summary.
         """
         endpoint = "/math/ads/executive-summary"
         params = {
@@ -58,57 +63,50 @@ class math_metric_retriver:
             "saturation": saturation
         }
         
-        logger.info(f"Fetching ads executive summary: {date_start} to {date_end}")
+        logger.info(f"Calling {endpoint}")
         return await self.client.get(endpoint, params)
     
+    # ========== API 2: Financial Summary ==========
     async def get_financial_summary(
         self,
         date_start: str,
         date_end: str
     ) -> dict:
         """
-        Fetch financial summary metrics.
+        GET /math/cfo/executive-summary
         
-        Args:
-            date_start: Start date in YYYY-MM-DD format
-            date_end: End date in YYYY-MM-DD format
-            
-        Returns:
-            Dict with financial metrics
+        Returns CFO/financial metrics.
         """
-        endpoint = "/math/financial/summary"
+        endpoint = "/math/cfo/executive-summary"
         params = {
             "date_start": date_start,
             "date_end": date_end
         }
         
-        logger.info(f"Fetching financial summary: {date_start} to {date_end}")
+        logger.info(f"Calling {endpoint}")
         return await self.client.get(endpoint, params)
     
+    # ========== API 3: Organic Metrics ==========
     async def get_organic_metrics(
         self,
         date_start: str,
         date_end: str
     ) -> dict:
         """
-        Fetch organic performance metrics.
+        GET /math/organic/executive-summary
         
-        Args:
-            date_start: Start date in YYYY-MM-DD format
-            date_end: End date in YYYY-MM-DD format
-            
-        Returns:
-            Dict with organic metrics
+        Returns organic performance metrics.
         """
-        endpoint = "/math/organic/metrics"
+        endpoint = "/math/organic/executive-summary"
         params = {
             "date_start": date_start,
             "date_end": date_end
         }
         
-        logger.info(f"Fetching organic metrics: {date_start} to {date_end}")
+        logger.info(f"Calling {endpoint}")
         return await self.client.get(endpoint, params)
     
+    # ========== API 4: Inventory Status ==========
     async def get_inventory_status(
         self,
         date_start: str,
@@ -116,17 +114,11 @@ class math_metric_retriver:
         asin: Optional[str] = None
     ) -> dict:
         """
-        Fetch inventory status and predictions.
+        GET /math/inventory/metrics/executive-summary
         
-        Args:
-            date_start: Start date in YYYY-MM-DD format
-            date_end: End date in YYYY-MM-DD format
-            asin: Optional ASIN to filter by specific product
-            
-        Returns:
-            Dict with inventory data
+        Returns inventory data, optionally filtered by ASIN.
         """
-        endpoint = "/math/inventory/status"
+        endpoint = "/math/inventory/metrics/executive-summary"
         params = {
             "date_start": date_start,
             "date_end": date_end
@@ -134,56 +126,49 @@ class math_metric_retriver:
         if asin:
             params["asin"] = asin
         
-        logger.info(f"Fetching inventory status: {date_start} to {date_end}")
+        logger.info(f"Calling {endpoint}")
         return await self.client.get(endpoint, params)
     
+    # ========== API 5: Attribution Metrics ==========
     async def get_attribution_metrics(
         self,
         date_start: str,
         date_end: str
     ) -> dict:
         """
-        Fetch attribution metrics.
+        GET /math/attribution/metrics
         
-        Args:
-            date_start: Start date in YYYY-MM-DD format
-            date_end: End date in YYYY-MM-DD format
-            
-        Returns:
-            Dict with attribution metrics
+        Returns attribution metrics.
         """
-        endpoint = "/math/attribution/metrics"
+        endpoint = "/math/attribution/executive-summary"
         params = {
             "date_start": date_start,
             "date_end": date_end
         }
         
-        logger.info(f"Fetching attribution metrics: {date_start} to {date_end}")
+        logger.info(f"Calling {endpoint}")
         return await self.client.get(endpoint, params)
     
-    async def get_product_performance(
+    # ========== API 6: Total Metrics Executive Summary ==========
+    async def get_total_metrics_summary(
         self,
         date_start: str,
-        date_end: str,
-        asin: str
+        date_end: str
     ) -> dict:
         """
-        Fetch performance metrics for a specific product (ASIN).
-        
-        Args:
-            date_start: Start date in YYYY-MM-DD format
-            date_end: End date in YYYY-MM-DD format
-            asin: Product ASIN identifier
-            
-        Returns:
-            Dict with product-specific metrics
+        GET /math/total/executive-summary
+
+        Returns total summary metrics across all areas.
         """
-        endpoint = f"/math/products/{asin}/performance"
+        endpoint = "/math/total/executive-summary"
         params = {
             "date_start": date_start,
             "date_end": date_end
         }
-        
-        logger.info(f"Fetching product performance for {asin}: {date_start} to {date_end}")
+
+        logger.info(f"Calling {endpoint}")
         return await self.client.get(endpoint, params)
 
+
+# ========== Singleton Instance - Use this everywhere ==========
+metrics_api = MathMetricRetriever()

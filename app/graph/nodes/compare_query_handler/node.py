@@ -1,5 +1,5 @@
 from langchain_openai import ChatOpenAI
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
 from langchain_core.tools import tool
 import logging
 
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 _current_state = {}
 
 
-def compare_query_handler_node(state: AgentState) -> AgentState:
+async def compare_query_handler_node(state: AgentState) -> AgentState:
     """
     Handler for compare_query type questions.
     
@@ -61,15 +61,15 @@ def compare_query_handler_node(state: AgentState) -> AgentState:
         api_key=settings.openai_api_key
     )
     
-    agent = create_react_agent(
+    agent = create_agent(
         llm,
         tools=[get_ads_comparison],
-        prompt=COMPARISON_QUERY_SYSTEM_PROMPT
+        system_prompt=COMPARISON_QUERY_SYSTEM_PROMPT
     )
     
     logger.info("Running comparison query agent...")
     
-    result = agent.invoke({
+    result = await agent.ainvoke({
         "messages": [(
             "human",
             f"""Question: {state['question']}

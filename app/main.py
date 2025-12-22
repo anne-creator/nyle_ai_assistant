@@ -12,7 +12,12 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Nyle Chatbot", version="1.0.0")
 
-# Create graph instance
+# Load settings first to set LangSmith environment variables
+settings = get_settings()
+logger.info(f"LangSmith tracing enabled: {settings.langchain_tracing_v2}")
+logger.info(f"LangSmith project: {settings.langchain_project}")
+
+# Create graph instance (after settings are loaded)
 graph = create_chatbot_graph()
 
 

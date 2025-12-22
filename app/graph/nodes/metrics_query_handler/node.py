@@ -1,13 +1,14 @@
 from langchain_openai import ChatOpenAI
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
 from langchain_core.tools import tool
 from typing import List
 import logging
 
 from app.models.state import AgentState
 from app.config import get_settings
-from app.metricsAccessLayer import metrics_api
 from app.graph.nodes.metrics_query_handler.prompt import METRICS_QUERY_SYSTEM_PROMPT
+from app.graph.nodes.metrics_query_handler.simple_metrics_tool import get_simple_metrics
+from app.metricsAccessLayer import metrics_api
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)
 _current_state = {}
 
 
-def metrics_query_handler_node(state: AgentState) -> AgentState:
+async def metrics_query_handler_node(state: AgentState) -> AgentState:
     """
     Handler for metrics_query type questions.
     
@@ -69,15 +70,15 @@ def metrics_query_handler_node(state: AgentState) -> AgentState:
         api_key=settings.openai_api_key
     )
     
-    agent = create_react_agent(
+    agent = create_agent(
         llm,
-        tools=[get_ads_metrics, get_financial_metrics],
-        prompt=METRICS_QUERY_SYSTEM_PROMPT
+        tools=[get_simple_metrics],
+        system_prompt=METRICS_QUERY_SYSTEM_PROMPT
     )
     
     logger.info("Running metrics query agent...")
     
-    result = agent.invoke({
+    result = await agent.ainvoke({
         "messages": [(
             "human",
             f"Question: {state['question']}\nDate: {state['date_start']} to {state['date_end']}"

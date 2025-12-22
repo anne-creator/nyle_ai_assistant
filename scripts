@@ -1,0 +1,407 @@
+#!/usr/bin/env python3
+"""
+Standalone Metrics Analyzer for AI Pattern Recognition
+Single file - ready for n8n workflow integration
+
+Fetches daily metrics (Total Sales, Net Profit, TACOS, ACOS) and formats for LLM analysis
+
+================================================================================
+EXAMPLE USAGE - 5 DAYS REQUEST
+================================================================================
+
+INPUT:
+------
+python metrics_analyzer.py 2025-12-01 2025-12-05
+
+Or with ASIN filter:
+python metrics_analyzer.py 2025-12-01 2025-12-05 B08N5WRWNW
+
+Or run directly (if executable):
+./metrics_analyzer.py 2025-12-01 2025-12-05
+
+
+OUTPUT:
+-------
+================================================================================
+DAILY METRICS DATA FOR AI ANALYSIS
+================================================================================
+Period: 2025-12-01 to 2025-12-05
+Total Days: 5
+
+--------------------------------------------------------------------------------
+DAILY BREAKDOWN
+--------------------------------------------------------------------------------
+
+Day 1: 2025-12-01
+  • Total Sales:    $601,462.79
+  • Net Profit:     $85,432.10
+  • TACOS:          9.76%
+  • ACOS:           12.50%
+
+Day 2: 2025-12-02
+  • Total Sales:    $308,937.41
+  • Net Profit:     $42,180.25
+  • TACOS:          12.30%
+  • ACOS:           15.20%
+
+Day 3: 2025-12-03
+  • Total Sales:    $270,474.00
+  • Net Profit:     $35,621.88
+  • TACOS:          12.24%
+  • ACOS:           14.80%
+
+Day 4: 2025-12-04
+  • Total Sales:    $272,830.09
+  • Net Profit:     $36,890.45
+  • TACOS:          12.58%
+  • ACOS:           15.10%
+
+Day 5: 2025-12-05
+  • Total Sales:    $272,830.93
+  • Net Profit:     $37,225.60
+  • TACOS:          12.45%
+  • ACOS:           14.95%
+
+--------------------------------------------------------------------------------
+STATISTICAL SUMMARY
+--------------------------------------------------------------------------------
+
+Total Sales:
+  • Sum:        $1,726,535.22
+  • Average:    $345,307.04
+  • Highest:    $601,462.79
+  • Lowest:     $270,474.00
+
+Net Profit:
+  • Sum:        $237,350.28
+  • Average:    $47,470.06
+  • Highest:    $85,432.10
+  • Lowest:     $35,621.88
+
+TACOS (Total Advertising Cost of Sales):
+  • Average:    11.87%
+  • Highest:    12.58%
+  • Lowest:     9.76%
+
+ACOS (Advertising Cost of Sales):
+  • Average:    14.51%
+  • Highest:    15.20%
+  • Lowest:     12.50%
+
+--------------------------------------------------------------------------------
+STRUCTURED DATA (JSON)
+--------------------------------------------------------------------------------
+
+[
+  {
+    "day": 1,
+    "date": "2025-12-01",
+    "total_sales": 601462.79,
+    "net_profit": 85432.10,
+    "tacos": 0.0976,
+    "acos": 0.1250,
+    "is_forecast": false
+  },
+  {
+    "day": 2,
+    "date": "2025-12-02",
+    "total_sales": 308937.41,
+    "net_profit": 42180.25,
+    "tacos": 0.1230,
+    "acos": 0.1520,
+    "is_forecast": false
+  },
+  {
+    "day": 3,
+    "date": "2025-12-03",
+    "total_sales": 270474.00,
+    "net_profit": 35621.88,
+    "tacos": 0.1224,
+    "acos": 0.1480,
+    "is_forecast": false
+  },
+  {
+    "day": 4,
+    "date": "2025-12-04",
+    "total_sales": 272830.09,
+    "net_profit": 36890.45,
+    "tacos": 0.1258,
+    "acos": 0.1510,
+    "is_forecast": false
+  },
+  {
+    "day": 5,
+    "date": "2025-12-05",
+    "total_sales": 272830.93,
+    "net_profit": 37225.60,
+    "tacos": 0.1245,
+    "acos": 0.1495,
+    "is_forecast": false
+  }
+]
+
+================================================================================
+
+KEY INSIGHTS FROM EXAMPLE:
+- Day 1 shows exceptional performance with sales 2x higher than other days
+- TACOS increased from 9.76% to ~12.5% after Day 1 (higher ad cost ratio)
+- ACOS fluctuates between 12.5%-15.2% indicating variable ad efficiency
+- Days 2-5 stabilize around $270-310k in sales
+- Net profit margin drops from ~14.2% (Day 1) to ~13.5% (Days 2-5)
+
+PERFECT FOR AI PROMPTS:
+"Analyze these metrics and identify patterns, anomalies, and optimization opportunities"
+
+================================================================================
+"""
+
+# import requests
+# import json
+
+# Note: Type hints removed for maximum compatibility with n8n
+# Only dependencies: requests (native in n8n) and json (Python built-in)
+
+# ============================================================================
+# CONFIGURATION - Update these values
+# ============================================================================
+BASE_URL = "https://api0.dev.nyle.ai/math/v1"
+BEARER_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY2MTgwNDQ4LCJpYXQiOjE3NjYxNzY4NDgsImp0aSI6ImI4ZWRhYTAzMjQ2YzRiMDA5NWIzZGZmNzQzMjEzNjBhIiwic3ViIjoiNGY4OWJlOWUtZTljMS00M2YyLWI1NzMtNTVjNmNlZTM0NDQxIiwic2NvcGVzIjoiIiwiYXVkIjpbImFwaSJdLCJpc3MiOiJueWxlLmFpIn0.ejrZH91O6w9KxLCSAZEzB13N7cRkx-NWeHNW7QtaTt8"
+
+TIMESPAN = "day"
+
+# API Endpoints
+ENDPOINTS = {
+    "total_sales": "/math/total/sales",
+    "tacos": "/math/total/tacos",
+    "acos": "/math/ads/acos",
+    "net_profit": "/math/cfo/net-profit"
+}
+
+# ============================================================================
+# FUNCTIONS
+# ============================================================================
+
+def fetch_metric(metric_name, date_start, date_end, asin=None):
+    """Fetch a single metric from the API"""
+    endpoint = ENDPOINTS.get(metric_name)
+    if not endpoint:
+        return {"error": f"Unknown metric: {metric_name}"}
+    
+    url = f"{BASE_URL}{endpoint}"
+    params = {
+        "timespan": TIMESPAN,
+        "date_start": date_start,
+        "date_end": date_end
+    }
+    
+    if asin:
+        params["asin"] = asin
+    
+    headers = {
+        "accept": "application/json",
+        "Authorization": f"Bearer {BEARER_TOKEN}"
+    }
+    
+    try:
+        response = requests.get(url, params=params, headers=headers, timeout=30)
+        
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return {"error": f"API Error {response.status_code}: {response.text}"}
+    except Exception as e:
+        return {"error": f"Request failed: {str(e)}"}
+
+
+def fetch_all_metrics(date_start, date_end, asin=None):
+    """Fetch all required metrics"""
+    results = {}
+    
+    print(f"Fetching metrics from {date_start} to {date_end}...")
+    
+    for metric_name in ENDPOINTS.keys():
+        print(f"  → Fetching {metric_name}...")
+        data = fetch_metric(metric_name, date_start, date_end, asin)
+        results[metric_name] = data
+    
+    print("✓ All metrics fetched\n")
+    return results
+
+
+def format_for_ai(metrics_data):
+    """Format metrics data for AI/LLM analysis"""
+    
+    # Extract data arrays
+    total_sales_data = metrics_data.get("total_sales", {}).get("data", [])
+    tacos_data = metrics_data.get("tacos", {}).get("data", [])
+    acos_data = metrics_data.get("acos", {}).get("data", [])
+    net_profit_data = metrics_data.get("net_profit", {}).get("data", [])
+    
+    if not total_sales_data:
+        return "ERROR: No data available. Check API connection and token."
+    
+    # Get period info
+    period_start = metrics_data.get("total_sales", {}).get("period_start", "N/A")
+    period_end = metrics_data.get("total_sales", {}).get("period_end", "N/A")
+    num_days = len(total_sales_data)
+    
+    # Build formatted output
+    output = []
+    output.append("=" * 80)
+    output.append("DAILY METRICS DATA FOR AI ANALYSIS")
+    output.append("=" * 80)
+    output.append(f"Period: {period_start} to {period_end}")
+    output.append(f"Total Days: {num_days}")
+    output.append("")
+    
+    # Daily breakdown
+    output.append("-" * 80)
+    output.append("DAILY BREAKDOWN")
+    output.append("-" * 80)
+    output.append("")
+    
+    daily_records = []
+    
+    for i in range(num_days):
+        # Extract values for this day
+        date = total_sales_data[i].get("period_start", "N/A")
+        total_sales = total_sales_data[i].get("value", 0)
+        net_profit = net_profit_data[i].get("value", 0) if i < len(net_profit_data) else 0
+        tacos = tacos_data[i].get("value", 0) if i < len(tacos_data) else 0
+        acos = acos_data[i].get("value", 0) if i < len(acos_data) else 0
+        is_forecast = total_sales_data[i].get("is_forecast", False)
+        
+        # Format daily output
+        output.append(f"Day {i+1}: {date}")
+        output.append(f"  • Total Sales:    ${total_sales:,.2f}")
+        output.append(f"  • Net Profit:     ${net_profit:,.2f}")
+        output.append(f"  • TACOS:          {tacos:.2%}")
+        output.append(f"  • ACOS:           {acos:.2%}")
+        
+        if is_forecast:
+            output.append(f"  • [FORECASTED]")
+        
+        output.append("")
+        
+        # Store for JSON
+        daily_records.append({
+            "day": i + 1,
+            "date": date,
+            "total_sales": round(total_sales, 2),
+            "net_profit": round(net_profit, 2),
+            "tacos": round(tacos, 4),
+            "acos": round(acos, 4),
+            "is_forecast": is_forecast
+        })
+    
+    # Statistical summary
+    output.append("-" * 80)
+    output.append("STATISTICAL SUMMARY")
+    output.append("-" * 80)
+    output.append("")
+    
+    total_sales_values = [d.get("value", 0) for d in total_sales_data]
+    net_profit_values = [d.get("value", 0) for d in net_profit_data]
+    tacos_values = [d.get("value", 0) for d in tacos_data]
+    acos_values = [d.get("value", 0) for d in acos_data]
+    
+    output.append("Total Sales:")
+    output.append(f"  • Sum:        ${sum(total_sales_values):,.2f}")
+    output.append(f"  • Average:    ${sum(total_sales_values)/len(total_sales_values):,.2f}")
+    output.append(f"  • Highest:    ${max(total_sales_values):,.2f}")
+    output.append(f"  • Lowest:     ${min(total_sales_values):,.2f}")
+    output.append("")
+    
+    output.append("Net Profit:")
+    output.append(f"  • Sum:        ${sum(net_profit_values):,.2f}")
+    output.append(f"  • Average:    ${sum(net_profit_values)/len(net_profit_values):,.2f}")
+    output.append(f"  • Highest:    ${max(net_profit_values):,.2f}")
+    output.append(f"  • Lowest:     ${min(net_profit_values):,.2f}")
+    output.append("")
+    
+    output.append("TACOS (Total Advertising Cost of Sales):")
+    output.append(f"  • Average:    {sum(tacos_values)/len(tacos_values):.2%}")
+    output.append(f"  • Highest:    {max(tacos_values):.2%}")
+    output.append(f"  • Lowest:     {min(tacos_values):.2%}")
+    output.append("")
+    
+    output.append("ACOS (Advertising Cost of Sales):")
+    output.append(f"  • Average:    {sum(acos_values)/len(acos_values):.2%}")
+    output.append(f"  • Highest:    {max(acos_values):.2%}")
+    output.append(f"  • Lowest:     {min(acos_values):.2%}")
+    output.append("")
+    
+    # JSON format for programmatic use
+    output.append("-" * 80)
+    output.append("STRUCTURED DATA (JSON)")
+    output.append("-" * 80)
+    output.append("")
+    output.append(json.dumps(daily_records, indent=2))
+    output.append("")
+    output.append("=" * 80)
+    
+    return "\n".join(output)
+
+
+def analyze_metrics(date_start, date_end, asin=None):
+    """
+    Main function - Fetch and format metrics for AI analysis
+    
+    Args:
+        date_start: Start date (YYYY-MM-DD)
+        date_end: End date (YYYY-MM-DD)
+        asin: Optional product ASIN filter
+        
+    Returns:
+        Formatted string ready for AI analysis
+    """
+    print("\n" + "=" * 60)
+    print("NYLE METRICS ANALYZER")
+    print("=" * 60)
+    
+    # Fetch all metrics
+    metrics_data = fetch_all_metrics(date_start, date_end, asin)
+    
+    # Format for AI
+    formatted_output = format_for_ai(metrics_data)
+    
+    return formatted_output
+
+
+# ============================================================================
+# MAIN EXECUTION
+# ============================================================================
+
+if __name__ == "__main__":
+    import sys
+    
+    # Parse command line arguments
+    if len(sys.argv) < 3:
+        print("\n" + "=" * 60)
+        print("USAGE")
+        print("=" * 60)
+        print("\nBasic:")
+        print("  python metrics_analyzer.py <date_start> <date_end>")
+        print("  ./metrics_analyzer.py <date_start> <date_end>")
+        print("\nWith ASIN filter:")
+        print("  python metrics_analyzer.py <date_start> <date_end> <asin>")
+        print("  ./metrics_analyzer.py <date_start> <date_end> <asin>")
+        print("\nExamples:")
+        print("  python metrics_analyzer.py 2025-12-01 2025-12-05")
+        print("  ./metrics_analyzer.py 2025-12-01 2025-12-05")
+        print("  ./metrics_analyzer.py 2025-12-01 2025-12-05 B08N5WRWNW")
+        print("\n" + "=" * 60 + "\n")
+        sys.exit(1)
+    
+    date_start = sys.argv[1]
+    date_end = sys.argv[2]
+    asin = sys.argv[3] if len(sys.argv) > 3 else None
+    
+    # Run analysis
+    result = analyze_metrics(date_start, date_end, asin)
+    
+    # Print result
+    print(result)
+    
+    print(f"\n✓ Output saved to: {output_file}\n")
+

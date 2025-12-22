@@ -41,5 +41,21 @@ def get_settings() -> Settings:
     """Get cached settings instance."""
     env = os.getenv("ENVIRONMENT", "local")
     env_file = f".env.{env}"
-    return Settings(_env_file=env_file)
+    settings = Settings(_env_file=env_file)
+    
+    # Set LangSmith environment variables for tracing
+    # LangChain/LangGraph reads these from os.environ
+    if settings.langchain_tracing_v2:
+        os.environ["LANGCHAIN_TRACING_V2"] = "true"
+        os.environ["LANGSMITH_TRACING"] = "true"  # Also set the new variable name
+    
+    if settings.langchain_api_key:
+        os.environ["LANGCHAIN_API_KEY"] = settings.langchain_api_key
+        os.environ["LANGSMITH_API_KEY"] = settings.langchain_api_key  # Also set the new variable name
+    
+    if settings.langchain_project:
+        os.environ["LANGCHAIN_PROJECT"] = settings.langchain_project
+        os.environ["LANGSMITH_PROJECT"] = settings.langchain_project  # Also set the new variable name
+    
+    return settings
 
