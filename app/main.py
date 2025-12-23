@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException, Header
+from fastapi import FastAPI, HTTPException, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from typing import Optional
 import logging
@@ -20,6 +21,14 @@ logger.info(f"LangSmith project: {settings.langchain_project}")
 # Create graph instance (after settings are loaded)
 graph = create_chatbot_graph()
 
+# Security scheme for Swagger UI
+security = HTTPBearer()
+
+
+def get_jwt_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
+    """Extract JWT token from Bearer credentials."""
+    return credentials.credentials
+
 
 class ChatRequest(BaseModel):
     message: str
@@ -35,15 +44,9 @@ class ChatResponse(BaseModel):
 @app.post("/chatbot", response_model=ChatResponse)
 async def chatbot(
     request: ChatRequest,
-    authorization: str = Header(None)
+    jwt_token: str = Depends(get_jwt_token)
 ):
     """Main chatbot endpoint."""
-    
-    # Validate JWT
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Missing or invalid authorization header")
-    
-    jwt_token = authorization.replace("Bearer ", "")
     
     logger.info(f"Received question: {request.message}")
     

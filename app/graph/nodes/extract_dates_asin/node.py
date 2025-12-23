@@ -1,5 +1,5 @@
 from langchain_openai import ChatOpenAI
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 
 from app.models.state import AgentState
@@ -28,7 +28,7 @@ def extract_dates_asin_node(state: AgentState) -> AgentState:
         api_key=settings.openai_api_key
     ).with_structured_output(AsinDateRange)
     
-    current_date = datetime.now().strftime("%Y-%m-%d")
+    current_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     prompt = EXTRACT_DATES_ASIN_PROMPT.format(
         current_date=current_date,
         question=state["question"]

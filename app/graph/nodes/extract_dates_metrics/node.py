@@ -1,5 +1,5 @@
 from langchain_openai import ChatOpenAI
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 
 from app.models.state import AgentState
@@ -28,7 +28,7 @@ def extract_dates_metrics_node(state: AgentState) -> AgentState:
         return state
     
     question = state["question"]
-    current_date = datetime.now().date()
+    current_date = datetime.now(timezone.utc).date()
     
     # Try pattern matching first (for relative dates like "last 7 days", "today", etc.)
     date_range = try_pattern_matching(question, current_date)
