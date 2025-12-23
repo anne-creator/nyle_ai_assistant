@@ -1,0 +1,452 @@
+question,answer,api_endpoints_called
+What is my store overall performance,"- **Total Sales:** **$2,517,379.79**
+- **Net Profit:** **$855,507.01**
+- **ROI:** **51.48%**
+
+(Date: Dec 16-22, 2025)","total,cfo"
+Show me all the numbers you have,"Here are all the metrics for the date range (Dec 16-22, 2025):
+
+### CFO/Financial Metrics
+- **Available Capital:** **$0.00**
+- **Frozen Capital:** **$0.00**
+- **Borrowed Capital:** **$0.00**
+- **Lost Sales:** **$125,868.99**
+- **Cost of Goods Sold:** **-$639,359.09**
+- **Gross Profit:** **$1,878,020.70**
+- **Net Profit:** **$855,507.01**
+- **Amazon Fees:** **-$785,134.13**
+- **Contribution Profit:** **$855,507.01**
+- **Gross Margin:** **74.60%**
+- **Contribution Margin:** **33.98%**
+- **Net Margin:** **33.98%**
+- **Opex:** **$0.00**
+- **EBITDA:** **$0.00**
+- **ROI:** **51.48%**
+
+### Total/Aggregate Metrics
+- **Total Sales:** **$2,517,379.79**
+- **Total Units Sold:** **74,300**
+- **Total Spend:** **$237,379.56**
+- **Total Clicks:** **587,677**
+- **Total Orders:** **68,898**
+- **CVR:** **11.72%**
+- **TACOS:** **9.43%**
+- **MER:** **10.60%**
+- **CTR:** **1.50%**
+- **Lost Sales:** **$125,868.99**
+- **ROI:** **51.48%**
+- **Contribution Margin:** **33.98%**
+- **Contribution Profit:** **$855,507.01**
+- **Gross Margin:** **74.60%**
+
+### Advertising Metrics
+- **Ad Sales:** **$975,915.56**
+- **Ad Spend:** **$237,379.56**
+- **ACOS:** **24.32%**
+- **ROAS:** **4.11**
+- **CPC:** **$1.51**
+- **Ad CTR:** **1.32%**
+- **Ad CVR:** **16.23%**
+- **Ad Clicks:** **157,238**
+- **Ad Impressions:** **11,886,054**
+- **Ad Units Sold:** **21,153**
+- **Ad Orders:** **25,516**
+
+### Organic Metrics
+- **Organic Impressions:** **26,833,252.67**
+- **Organic Clicks:** **418,960**
+- **Organic Orders:** **42,982**
+- **Organic Units Sold:** **52,719**
+- **Organic CVR:** **10.26%**
+- **Organic CTR:** **1.56%**
+- **Organic Sales:** **$1,523,296.60**
+
+### Attribution Metrics
+- **Attribution Sales:** **$18,167.63**
+- **Attribution Spend:** **$0.00**
+- **Attribution Impressions:** **459,160**
+- **Attribution Clicks:** **11,479**
+- **Attribution Units Sold:** **428**
+- **Attribution Orders:** **400**
+- **Attribution CTR:** **2.50%**
+- **Attribution CVR:** **3.48%**
+
+### Inventory Metrics
+- **Safety Stock:** **0.00**
+- **Inventory Turnover:** **0.00**
+- **FBA In Stock Rate:** **62.79%**","total,cfo,ads,organic,attribution,inventory"
+Give me total sales,"**Total Sales:** **$2,517,379.79** (Dec 16-22, 2025)",total
+Show me total sales,"**Total Sales:** **$2,517,379.79** (Dec 16-22, 2025)",total
+What are my total sales,"Your total sales from December 16 to December 22, 2025, are **$2,517,379.79**.",total
+Display total sales,"**Total Sales:** **$2,517,379.79** (Dec 16-22, 2025)",total
+Get me total sales data,"**Total Sales:** **$2,517,379.79** (Dec 16-22, 2025)",total
+Show me total spend,"**Total Spend:** **$237,379.56** (Dec 16-22, 2025)",total
+What is my total spend,"Your total spend is **$237,379.56** (Dec 16-22, 2025).",total
+Display total spend,"**Total Spend:** **$237,379.56** (Dec 16-22, 2025)",total
+Get total spend,"**Total Spend:** **$237,379.56** (Dec 16-22, 2025)",total
+What are my advertising costs,"- **Advertising Spend:** **$237,379.56**
+- **ACOS:** **24.32%**
+
+*(Dec 16-22, 2025)*",ads
+Show me total clicks,"**Total Clicks:** **587,677** (Dec 16-22, 2025)",total
+What are my total clicks,"Your total clicks are **587,677** (Dec 16-22, 2025).",total
+Display total clicks,"**Total Clicks:** **587,677** (Dec 16-22, 2025)",total
+Get total clicks,"**Total Clicks:** **587,677** (Dec 16-22, 2025)",total
+How many clicks did I get,"You received **587,677** clicks during the period (Dec 16-22, 2025).",total
+Show me total units sold,"**Total Units Sold:** **74,300** (Dec 16-22, 2025)",total
+What are my total units sold,"Your total units sold from December 16 to December 22, 2025, is **74,300**.",total
+Display total units sold,"**Total Units Sold:** **74,300** (Dec 16-22, 2025)",total
+Get total units sold,"**Total Units Sold:** **74,300** (Dec 16-22, 2025)",total
+How many units did I sell,"**Total Units Sold:** **74,300** (Dec 16-22, 2025)",total
+Show me net profit,"**Net Profit:** **$855,507.01** (Dec 16-22, 2025)",cfo
+What is my net profit,"Your net profit is **$855,507.01** (Dec 16-22, 2025).",cfo
+Display net profit,"**Net Profit:** **$855,507.01** (Dec 16-22, 2025)",cfo
+Get net profit,"**Net Profit:** **$855,507.01** (Dec 16-22, 2025)",cfo
+What are my profits,"- **Net Profit:** **$855,507.01**
+- **Gross Profit:** **$1,878,020.70**
+- **Contribution Profit:** **$855,507.01**
+
+(Date: Dec 16-22, 2025)","total,cfo"
+Show me ROI,"**ROI:** **51.48%** (Dec 16-22, 2025)","total,cfo"
+What is my ROI,"Your ROI is **51.48%** (Dec 16-22, 2025).","total,cfo"
+Display ROI,"**ROI:** **51.48%** (Dec 16-22, 2025)","total,cfo"
+Get ROI,"**ROI:** **51.48%** (Dec 16-22, 2025)","total,cfo"
+What is my return on investment,"Your return on investment (ROI) is **51.48%** (Dec 16-22, 2025).","total,cfo"
+Show me ad sales,"**Ad Sales:** **$975,916** (Dec 16-22, 2025)",ads
+What are my ad sales,"Your ad sales are **$975,915.56** (Dec 16-22, 2025).",ads
+Display ad sales,"**Ad Sales:** **$975,916** (Dec 16-22, 2025)",ads
+Get ad sales,"**Ad Sales:** **$975,916** (Dec 16-22, 2025)",ads
+What is my advertising sales,"Your advertising sales are **$975,916** (Dec 16-22, 2025).",ads
+Show me ACOS,"**ACOS:** **24.32%** (Dec 16-22, 2025)",ads
+What is my ACOS,"Your ACOS is **24.32%** (Dec 16-22, 2025).",ads
+Display ACOS,"**ACOS:** **24.32%** (Dec 16-22, 2025)",ads
+Get ACOS,"**ACOS:** **24.32%** (Dec 16-22, 2025)",ads
+What is my advertising cost of sales,"Your advertising cost of sales (ACOS) is **24.32%** (Dec 16-22, 2025).",ads
+Show me total sales for today,"- **Total Sales**: **$0.00**  
+*(Dec 22, 2025)*",total
+What is today's total sales,"**Total Sales:** **$0.00** (Dec 22, 2025)",total
+Get total sales for today,"**Total Sales:** **$0.00** (Dec 22, 2025)",total
+Display today's total sales,"**Total Sales:** **$0.00** (Dec 22, 2025)",total
+What are my total sales today,"Your total sales today (Dec 22, 2025) are **$0.00**.",total
+Show me total spend for today,"**Total Spend:** **$0.00** (Dec 22, 2025)",total
+What is today's total spend,"**Total Spend:** **$0.00** (Dec 22, 2025)",total
+Get total spend for today,"**Total Spend:** **$0.00** (Dec 22, 2025)",total
+Display today's total spend,"**Total Spend:** **$0.00** (Dec 22, 2025)",total
+What are my costs today,"Here are your costs for today (Dec 22, 2025):
+
+- **Cost of Goods Sold:** **$0.00**
+- **Amazon Fees:** **$0.00**
+- **Operating Expenses (Opex):** **$0.00**",cfo
+Show me total clicks for today,"- **Total Clicks:** **0**  
+*(Dec 22, 2025)*",total
+What are today's total clicks,"**Total Clicks:** **0** (Dec 22, 2025)",total
+Get total clicks for today,"- **Total Clicks**: **0**  
+(Date: Dec 22, 2025)",total
+Display today's total clicks,"**Total Clicks:** **0** (Dec 22, 2025)",total
+How many clicks today,"**Total Clicks:** **0** (Dec 22, 2025)",total
+Show me total units sold for today,"- **Total Units Sold**: **0** (Dec 22, 2025)",total
+What are today's total units sold,"**Total Units Sold:** **0** (Dec 22, 2025)",total
+Get total units sold for today,"- **Total Units Sold**: **0** (Dec 22, 2025)",total
+Display today's total units sold,"**Total Units Sold:** **0** (Dec 22, 2025)",total
+How many units sold today,"**Total Units Sold:** **0** (Dec 22, 2025)",total
+Show me net profit for today,"- **Net Profit**: **$0.00**  
+(Date: Dec 22, 2025)",cfo
+What is today's net profit,"**Net Profit:** **$0.00** (Dec 22, 2025)",cfo
+Get net profit for today,"**Net Profit:** **$0.00** (Dec 22, 2025)",cfo
+Display today's net profit,"**Net Profit:** **$0.00** (Dec 22, 2025)",cfo
+What are my profits today,"- **Net Profit:** **$0.00**
+- **ROI:** **0.00%**
+
+(Date: Dec 22, 2025)","total,cfo"
+Show me ROI for today,"**ROI:** **0.00%** (Dec 22, 2025)","total,cfo"
+What is today's ROI,"**ROI:** **0.00%** (Dec 22, 2025)","total,cfo"
+Get ROI for today,"**ROI:** **0.00%** (Dec 22, 2025)","total,cfo"
+Display today's ROI,"**ROI:** **0.00%** (Dec 22, 2025)","total,cfo"
+What is my return today,"Your return today is **$0.00** (Dec 22, 2025).",cfo
+Show me ad sales for today,"- **Ad Sales**: **$0.00**  
+*(Dec 22, 2025)*",ads
+What are today's ad sales,"**Ad Sales:** **$0.00** (Dec 22, 2025)",ads
+Get ad sales for today,"**Ad Sales:** **$0.00** (Dec 22, 2025)",ads
+Display today's ad sales,"**Ad Sales:** **$0.00** (Dec 22, 2025)",ads
+What is my advertising revenue today,"Your advertising revenue today is **$0.00** (Dec 22, 2025).",ads
+Show me ACOS for today,"**ACOS**: **N/A** (No data available)  
+Date Range: **(Dec 22, 2025)**",ads
+What is today's ACOS,"**ACOS**: **N/A** (No data available)  
+Date Range: **(Dec 22, 2025)**",ads
+Get ACOS for today,"**ACOS**: **N/A** (No data available)  
+Date Range: (Dec 22, 2025)",ads
+Display today's ACOS,"**ACOS:** **N/A** (No data available)  
+**Date Range:** (Dec 22, 2025)",ads
+What is my ad efficiency today,"- **ACOS**: **N/A**
+- **ROAS**: **N/A**
+- **CPC**: **$0.00**
+
+(Date: Dec 22, 2025)",ads
+Show me total sales for yesterday,"- **Total Sales**: **$393,140.59**  
+*(Dec 21, 2025)*",total
+What was yesterday's total sales,"**Total Sales:** **$393,140.59** (Dec 21, 2025)",total
+Get total sales for yesterday,"- **Total Sales**: **$393,140.59**  
+*(Dec 21, 2025)*",total
+Display yesterday's total sales,"**Total Sales:** **$393,140.59** (Dec 21, 2025)",total
+What were my total sales yesterday,"Your total sales yesterday (Dec 21, 2025) were **$393,140.59**.",total
+Show me total spend for yesterday,"- **Total Spend**: **$0.00**  
+*(Dec 21, 2025)*",total
+What was yesterday's total spend,"**Total Spend:** **$0.00** (Dec 21, 2025)",total
+Get total spend for yesterday,"- **Total Spend:** **$0.00**  
+*(Dec 21, 2025)*",total
+Display yesterday's total spend,"**Total Spend:** **$0.00** (Dec 21, 2025)",total
+What were my costs yesterday,"Here are your costs for December 21, 2025:
+
+- **Cost of Goods Sold:** **-$100,056.22**
+- **Amazon Fees:** **-$0.00**
+- **Total Spend:** **$0.00**","total,cfo"
+Show me total clicks for yesterday,"- **Total Clicks:** **0**  
+*(Dec 21, 2025)*",total
+What were yesterday's total clicks,"Total clicks for yesterday (Dec 21, 2025): **0**.",total
+Get total clicks for yesterday,"- **Total Clicks:** **0**  
+*(Dec 21, 2025)*",total
+Display yesterday's total clicks,"**Total Clicks:** **0** (Dec 21, 2025)",total
+How many clicks yesterday,"**Total Clicks:** **0** (Dec 21, 2025)",total
+Show me total units sold for yesterday,"- **Total Units Sold:** **11,810**  
+*(Dec 21, 2025)*",total
+What were yesterday's total units sold,"**Total Units Sold:** **11,810** (Dec 21, 2025)",total
+Get total units sold for yesterday,"**Total Units Sold:** **11,810** (Dec 21, 2025)",total
+Display yesterday's total units sold,"**Total Units Sold:** **11,810** (Dec 21, 2025)",total
+How many units sold yesterday,"**Total units sold yesterday (Dec 21, 2025):** **11,810**",total
+Show me net profit for yesterday,"**Net Profit**: **$293,084.37** (Dec 21, 2025)",cfo
+What was yesterday's net profit,"**Net Profit**: **$293,084.37** (Dec 21, 2025)",cfo
+Get net profit for yesterday,"**Net Profit**: **$293,084.37** (Dec 21, 2025)",cfo
+Display yesterday's net profit,"**Net Profit:** **$293,084.37** (Dec 21, 2025)",cfo
+What were my profits yesterday,"- **Net Profit:** **$293,084.37**
+- **ROI:** **292.92%**
+
+*(Dec 21, 2025)*","total,cfo"
+Show me ROI for yesterday,"**ROI:** **292.92%** (Dec 21, 2025)","total,cfo"
+What was yesterday's ROI,"**ROI:** **292.92%** (Dec 21, 2025)","total,cfo"
+Get ROI for yesterday,"**ROI:** **292.92%** (Dec 21, 2025)","total,cfo"
+Display yesterday's ROI,"**ROI:** **292.92%** (Dec 21, 2025)","total,cfo"
+What was my return yesterday,"- **Total Sales:** **$393,140.59**
+- **Net Profit:** **$293,084.37**
+- **ROI:** **292.92%**
+
+*(Dec 21, 2025)*","total,cfo"
+Show me ad sales for yesterday,"- **Ad Sales**: **$0.00**  
+*(Dec 21, 2025)*",ads
+What were yesterday's ad sales,"**Ad Sales:** **$0.00** (Dec 21, 2025)",ads
+Get ad sales for yesterday,"**Ad Sales:** **$0.00** (Dec 21, 2025)",ads
+Display yesterday's ad sales,"**Ad Sales:** **$0.00** (Dec 21, 2025)",ads
+What was my advertising revenue yesterday,"Your advertising revenue for yesterday (Dec 21, 2025) was **$0.00**.",ads
+Show me ACOS for yesterday,"**ACOS**: **N/A** (No data available)  
+Date Range: (Dec 21, 2025)",ads
+What was yesterday's ACOS,"**ACOS**: **N/A** (No data available)  
+Date Range: (Dec 21, 2025)",ads
+Get ACOS for yesterday,"**ACOS**: **N/A** (No data available)  
+Date Range: (Dec 21, 2025)",ads
+Display yesterday's ACOS,"**ACOS**: **N/A** (No data available for the date range: Dec 21, 2025)",ads
+What was my ad efficiency yesterday,"- **ACOS**: **N/A**
+- **ROAS**: **N/A**
+- **CPC**: **$0.00**
+
+(Date: Dec 21, 2025)",ads
+Show me total sales for last 7 days,"**Total Sales:** **$2,517,379.79** (Dec 16-22, 2025)",total
+What are my total sales over the past 7 days,"Your total sales over the past 7 days (Dec 16-22, 2025) are **$2,517,379.79**.",total
+Get total sales from the last 7 days,"**Total Sales:** **$2,517,379.79** (Dec 16-22, 2025)",total
+Display total sales for the last week,"**Total Sales:** **$2,517,379.79** (Dec 16-22, 2025)",total
+Total sales in the past 7 days,"**Total Sales:** **$2,517,379.79** (Dec 16-22, 2025)",total
+Show me total spend for last 7 days,"**Total Spend:** **$237,379.56** (Dec 16-22, 2025)",total
+What is my total spend over the past 7 days,"Your total spend over the past 7 days (Dec 16-22, 2025) is **$237,379.56**.",total
+Get total spend from the last 7 days,"**Total Spend:** **$237,379.56** (Dec 16-22, 2025)",total
+Display total spend for the last week,"**Total Spend**: **$237,379.56** (Dec 16-22, 2025)",total
+Total spend in the past 7 days,"**Total Spend:** **$237,379.56** (Dec 16-22, 2025)",total
+Show me total clicks for last 7 days,"**Total Clicks:** **587,677** (Dec 16-22, 2025)",total
+What are my total clicks over the past 7 days,"Your total clicks over the past 7 days (Dec 16-22, 2025) are **587,677**.",total
+Get total clicks from the last 7 days,"**Total Clicks:** **587,677** (Dec 16-22, 2025)",total
+Display total clicks for the last week,"**Total Clicks:** **587,677** (Dec 16-22, 2025)",total
+Total clicks in the past 7 days,"**Total Clicks:** **587,677** (Dec 16-22, 2025)",total
+Show me net profit for last 7 days,"**Net Profit:** **$855,507.01** (Dec 16-22, 2025)",cfo
+What is my net profit over the past 7 days,"Your net profit over the past 7 days (Dec 16-22, 2025) is **$855,507.01**.",cfo
+Get net profit from the last 7 days,"**Net Profit:** **$855,507.01** (Dec 16-22, 2025)",cfo
+Display net profit for the last week,"**Net Profit**: **$855,507.01** (Dec 16-22, 2025)",cfo
+Net profit in the past 7 days,"**Net Profit**: **$855,507.01** (Dec 16-22, 2025)",cfo
+Show me ROI for last 7 days,"**ROI:** **51.48%** (Dec 16-22, 2025)","total,cfo"
+What is my ROI over the past 7 days,"Your ROI over the past 7 days (Dec 16-22, 2025) is **51.48%**.","total,cfo"
+Get ROI from the last 7 days,"**ROI:** **51.48%** (Dec 16-22, 2025)","total,cfo"
+Display ROI for the last week,"**ROI:** **51.48%** (Dec 16-22, 2025)","total,cfo"
+ROI in the past 7 days,"**ROI:** **51.48%** (Dec 16-22, 2025)","total,cfo"
+Show me ad sales for last 7 days,"**Ad Sales:** **$975,916** (Dec 16-22, 2025)",ads
+What are my ad sales over the past 7 days,"Your ad sales over the past 7 days (Dec 16-22, 2025) are **$975,916**.",ads
+Get ad sales from the last 7 days,"**Ad Sales:** **$975,916** (Dec 16-22, 2025)",ads
+Display ad sales for the last week,"**Ad Sales:** **$975,916** (Dec 16-22, 2025)",ads
+Ad sales in the past 7 days,"**Ad Sales:** **$975,916** (Dec 16-22, 2025)",ads
+Show me ACOS for last 7 days,"**ACOS:** **24.32%** (Dec 16-22, 2025)",ads
+What is my ACOS over the past 7 days,"Your ACOS over the past 7 days (Dec 16-22, 2025) is **24.32%**.",ads
+Get ACOS from the last 7 days,"**ACOS:** **24.32%** (Dec 16-22, 2025)",ads
+Display ACOS for the last week,"**ACOS:** **24.32%** (Dec 16-22, 2025)",ads
+ACOS in the past 7 days,"**ACOS:** **24.32%** (Dec 16-22, 2025)",ads
+Show me total sales for last 30 days,"**Total Sales:** **$9,613,733.03** (Nov 23 - Dec 22, 2025)",total
+What are my total sales over the past 30 days,"Your total sales over the past 30 days (Nov 23 - Dec 22, 2025) are **$9,613,733.03**.",total
+Get total sales from the last 30 days,"**Total Sales:** **$9,613,733.03** (Nov 23 - Dec 22, 2025)",total
+Display total sales for the last month,"**Total Sales**: **$1,871,695.13** (Nov 16-22, 2025)",total
+Total sales in the past 30 days,"**Total Sales:** **$9,613,733.03** (Nov 23 - Dec 22, 2025)",total
+Show me net profit for last 30 days,"**Net Profit:** **$2,562,256.67** (Nov 23 - Dec 22, 2025)",cfo
+What is my net profit over the past 30 days,"Your net profit over the past 30 days (Nov 23 - Dec 22, 2025) is **$2,562,256.67**.",cfo
+Get net profit from the last 30 days,"**Net Profit:** **$2,562,256.67** (Nov 23 - Dec 22, 2025)",cfo
+Display net profit for the last month,"**Net Profit:** **$855,507.01** (Dec 16-22, 2025)",cfo
+Net profit in the past 30 days,"**Net Profit:** **$2,562,256.67** (Nov 23 - Dec 22, 2025)",cfo
+Show me ROI for last 30 days,"**ROI:** **36.34%** (Nov 23 - Dec 22, 2025)","total,cfo"
+What is my ROI over the past 30 days,"Your ROI over the past 30 days is **36.34%** (Nov 23 - Dec 22, 2025).","total,cfo"
+Get ROI from the last 30 days,"**ROI:** **36.34%** (Nov 23 - Dec 22, 2025)","total,cfo"
+Display ROI for the last month,"**ROI:** **51.48%** (Dec 16-22, 2025)","total,cfo"
+ROI in the past 30 days,"**ROI:** **36.34%** (Nov 23 - Dec 22, 2025)","total,cfo"
+Show me total sales for January,"**Total Sales** for January 2025: **$0.00** (Jan 1-31, 2025)",total
+What were my total sales in January,"Your total sales for January 2025 were **$0.00** (Jan 1-31, 2025).",total
+Get January total sales,"**Total Sales:** **$0.00** (Jan 1-31, 2025)",total
+Display total sales for January,"**Total Sales:** **$0.00** (Jan 1-31, 2025)",total
+Show me net profit for May,"**Net Profit**: **$1,998,652.11** (May 1-31, 2025)",cfo
+What was my net profit in May,"Your net profit for May 2025 was **$1,998,652.11** (May 1-31, 2025).",cfo
+Get May net profit,"**Net Profit**: **$1,998,652.11** (May 1-31, 2025)",cfo
+Display net profit for May,"**Net Profit:** **$1,998,652.11** (May 1-31, 2025)",cfo
+Show me ROI for June,"**ROI:** **139.25%** (Jun 1-30, 2025)","total,cfo"
+What was my ROI in June,"Your ROI for June 2025 was **139.25%** (Jun 1-30, 2025).","total,cfo"
+Get June ROI,"**ROI:** **139.25%** (Jun 1-30, 2025)","total,cfo"
+Display ROI for June,"**ROI:** **139.25%** (Jun 1-30, 2025)","total,cfo"
+Show me ACOS for August,"**ACOS:** **23.30%** (Aug 1-31, 2025)",ads
+What was my ACOS in August,"Your ACOS for August 2025 was **23.30%** (Aug 1-31, 2025).",ads
+Get August ACOS,"**ACOS:** **23.30%** (Aug 1-31, 2025)",ads
+Display ACOS for August,"**ACOS:** **23.30%** (Aug 1-31, 2025)",ads
+Show me total sales on October 15th,"**Total Sales**: **$163,390.59** (Oct 15, 2025)",total
+What were my total sales on October 15th,"Your total sales on October 15th, 2025, were **$163,390.59**.",total
+Get total sales for October 15th,"**Total Sales**: **$163,390.59** (Oct 15, 2025)",total
+Show me ROI on January 1st,"- **ROI**: **-100.00%** (Jan 1, 2025)","total,cfo"
+What was my ROI on January 1st,"Your ROI on January 1st, 2025, was **-100.00%**.","total,cfo"
+Get ROI for January 1st,"**ROI:** **-100.00%** (Jan 1-31, 2025)","total,cfo"
+Show me weekly total sales,"**Total Sales:** **$2,517,379.79** (Dec 16-22, 2025)",total
+What are my weekly total sales,"Your total sales for the week (Dec 16-22, 2025) are **$2,517,379.79**.",total
+Get weekly total sales,"**Total Sales:** **$2,517,379.79** (Dec 16-22, 2025)",total
+Display weekly total sales,"**Total Sales:** **$2,517,379.79** (Dec 16-22, 2025)",total
+Show me monthly total sales,"- **Total Sales:** **$2,517,379.79**  
+*(Dec 16-22, 2025)*",total
+What are my monthly total sales,"Your total sales for the period (Dec 16-22, 2025) are **$2,517,379.79**.",total
+Get monthly total sales,"**Total Sales:** **$2,517,379.79** (Dec 16-22, 2025)",total
+Display monthly total sales,"**Total Sales:** **$2,517,379.79** (Dec 16-22, 2025)",total
+Show me total sales and total spend,"- **Total Sales:** **$2,517,379.79**
+- **Total Spend:** **$237,379.56**
+
+(Date: Dec 16-22, 2025)",total
+What are my total sales and total spend,"- **Total Sales:** **$2,517,379.79**
+- **Total Spend:** **$237,379.56**
+
+(Date: Dec 16-22, 2025)",total
+Get total sales and total spend together,"- **Total Sales:** **$2,517,379.79**
+- **Total Spend:** **$237,379.56**
+
+*(Dec 16-22, 2025)*",total
+Show me ROI and net profit,"- **ROI:** **51.48%**
+- **Net Profit:** **$855,507.01**
+
+(Date: Dec 16-22, 2025)","total,cfo"
+What are my ROI and net profit,"- **ROI:** **51.48%**
+- **Net Profit:** **$855,507.01**
+
+(Date: Dec 16-22, 2025)","total,cfo"
+Get ROI and net profit together,"- **ROI:** **51.48%**
+- **Net Profit:** **$855,507.01**
+
+(Date: Dec 16-22, 2025)","total,cfo"
+Show me ad sales and ACOS,"- **Ad Sales:** **$975,915.56**
+- **ACOS:** **24.32%**
+
+(Date: Dec 16-22, 2025)",ads
+What are my ad sales and ACOS,"- **Ad Sales:** **$975,915.56**
+- **ACOS:** **24.32%**
+
+(Date: Dec 16-22, 2025)",ads
+Get ad sales and ACOS together,"- **Ad Sales:** **$975,916**
+- **ACOS:** **24.32%**
+
+(Date: Dec 16-22, 2025)",ads
+Show me all advertising metrics,"Here are your advertising metrics for the period (Dec 16-22, 2025):
+
+- **Ad Sales:** **$975,915.56**
+- **Ad Spend:** **$237,379.56**
+- **ACOS:** **24.32%**
+- **ROAS:** **4.11**
+- **CPC:** **$1.51**
+- **Ad CTR:** **1.32%**
+- **Ad CVR:** **16.23%**
+- **Ad Clicks:** **157,238**
+- **Ad Impressions:** **11,886,054**
+- **Ad Units Sold:** **21,153**
+- **Ad Orders:** **25,516**
+- **Time in Budget:** **N/A**",ads
+What are all my advertising metrics,"Here are your advertising metrics for the period (Dec 16-22, 2025):
+
+- **Ad Sales:** **$975,915.56**
+- **Ad Spend:** **$237,379.56**
+- **ACOS:** **24.32%**
+- **ROAS:** **4.11**
+- **CPC:** **$1.51**
+- **Ad CTR:** **1.32%**
+- **Ad CVR:** **16.23%**
+- **Ad Clicks:** **157,238**
+- **Ad Impressions:** **11,886,054**
+- **Ad Units Sold:** **21,153**
+- **Ad Orders:** **25,516**
+- **Time in Budget:** **N/A**",ads
+Get all advertising metrics,"Here are your advertising metrics for the period (Dec 16-22, 2025):
+
+- **Ad Sales:** **$975,915.56**
+- **Ad Spend:** **$237,379.56**
+- **ACOS:** **24.32%**
+- **ROAS:** **4.11**
+- **CPC:** **$1.51**
+- **Ad CTR:** **1.32%**
+- **Ad CVR:** **16.23%**
+- **Ad Clicks:** **157,238**
+- **Ad Impressions:** **11,886,054**
+- **Ad Units Sold:** **21,153**
+- **Ad Orders:** **25,516**
+- **Time in Budget:** **N/A**",ads
+Show me all sales metrics,"Here are your sales metrics for the period (Dec 16-22, 2025):
+
+- **Total Sales:** **$2,517,379.79**
+- **Total Units Sold:** **74,300**
+- **Total Spend:** **$237,379.56**
+- **Total Clicks:** **587,677**
+- **Total Orders:** **68,898**
+- **Conversion Rate (CVR):** **11.72%**
+- **Total Advertising Cost of Sales (TACOS):** **9.43%**
+- **Marketing Efficiency Ratio (MER):** **10.60%**
+- **Click-Through Rate (CTR):** **1.50%**
+- **Lost Sales:** **$125,868.99**
+- **Return on Investment (ROI):** **51.48%**
+- **Contribution Margin:** **33.98%**
+- **Contribution Profit:** **$855,507.01**
+- **Gross Margin:** **74.60%**","total,cfo"
+What are all my sales metrics,"Here are your sales metrics for the period (Dec 16-22, 2025):
+
+- **Total Sales:** **$2,517,379.79**
+- **Total Units Sold:** **74,300**
+- **Total Orders:** **68,898**
+- **Organic Sales:** **$1,523,296.60**
+- **Organic Units Sold:** **52,719**
+- **Organic Orders:** **42,982**
+- **Ad Sales:** **$975,915.56**
+- **Ad Units Sold:** **21,153**
+- **Ad Orders:** **25,516**","ads,total,organic"
+Get all sales metrics,"Here are your sales metrics for the period (Dec 16-22, 2025):
+
+- **Total Sales:** **$2,517,379.79**
+- **Total Units Sold:** **74,300**
+- **Total Spend:** **$237,379.56**
+- **Total Clicks:** **587,677**
+- **Total Orders:** **68,898**
+- **Conversion Rate (CVR):** **11.72%**
+- **Total Advertising Cost of Sales (TACOS):** **9.43%**
+- **Marketing Efficiency Ratio (MER):** **10.60%**
+- **Click-Through Rate (CTR):** **1.50%**
+- **Lost Sales:** **$125,868.99**
+- **Return on Investment (ROI):** **51.48%**
+- **Contribution Margin:** **33.98%**
+- **Contribution Profit:** **$855,507.01**
+- **Gross Margin:** **74.60%**","total,cfo"

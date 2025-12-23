@@ -13,6 +13,11 @@ class EvaluationConfig:
     # Dataset names (must match names in LangSmith web console)
     DATES_METRICS_DATASET = "nyle-dates-metrics-dataset"
     
+    # E2E Evaluation settings
+    E2E_METRICS_DATASET = "metrics_questions_full.csv"
+    E2E_EXPERIMENT_PREFIX = "e2e-metrics-eval"
+    E2E_OUTPUT_DIR = "evaluations/outputs"
+    
     # Experiment settings
     DATES_METRICS_EXPERIMENT_PREFIX = "dates-metrics-eval"
     MAX_CONCURRENCY = 4
