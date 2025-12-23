@@ -1,29 +1,117 @@
 """
-Simple Metrics Tool - AI Agent for retrieving specific metrics from multiple APIs.
+Simple Metrics Tool - Deterministic metric retrieval from Nyle backend APIs.
 
-This tool is an AI agent that:
+This tool:
 1. Receives a list of metric names
-2. Determines which API endpoints to call
-3. Retrieves data from those endpoints
+2. Maps metrics to their corresponding API endpoints
+3. Calls only the required endpoints (in parallel)
 4. Returns only the requested metrics in a structured format
 """
 
-from langchain_openai import ChatOpenAI
-from langchain.agents import create_agent
+import asyncio
 from langchain_core.tools import tool
 from pydantic import BaseModel, Field
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Set
 import logging
 import json
 
-from app.config import get_settings
-from app.graph.nodes.metrics_query_handler.simple_metrics_tool.prompt import SIMPLE_METRICS_SYSTEM_PROMPT
 from app.metricsAccessLayer import metrics_api
 
 logger = logging.getLogger(__name__)
 
-# Store context for tool access
-_current_context = {}
+
+# Mapping of metrics to their source endpoints (can have multiple endpoints per metric)
+# Format: metric_name -> list of endpoints to try (in order of preference)
+METRIC_TO_ENDPOINTS = {
+    # Ads endpoint metrics
+    "ad_sales": ["ads"],
+    "ad_spend": ["ads"],
+    "ad_clicks": ["ads"],
+    "ad_impressions": ["ads"],
+    "ad_units_sold": ["ads"],
+    "ad_orders": ["ads"],
+    "acos": ["ads"],
+    "roas": ["ads"],
+    "cpc": ["ads"],
+    "cac": ["ads"],
+    "ad_ctr": ["ads"],
+    "ad_cvr": ["ads"],
+    "time_in_budget": ["ads"],
+    
+    # Total endpoint metrics
+    "total_sales": ["total"],
+    "total_units_sold": ["total"],
+    "total_spend": ["total"],
+    "total_clicks": ["total"],
+    "total_orders": ["total"],
+    "total_impressions": ["total"],
+    "cvr": ["total"],
+    "tacos": ["total"],
+    "mer": ["total"],
+    "net_proceeds": ["total"],
+    "ctr": ["total"],
+    "cogs": ["total"],
+    "monthly_budget": ["total"],
+    "lost_sales": ["total", "cfo"],  # exists in both
+    "roi": ["total", "cfo"],  # exists in both - try total first, fallback to cfo
+    "contribution_margin": ["total", "cfo"],  # exists in both
+    "contribution_profit": ["total", "cfo"],  # exists in both
+    "gross_margin": ["total", "cfo"],  # exists in both
+    
+    # CFO endpoint metrics
+    "available_capital": ["cfo"],
+    "frozen_capital": ["cfo"],
+    "borrowed_capital": ["cfo"],
+    "cost_of_goods_sold": ["cfo"],
+    "gross_profit": ["cfo"],
+    "net_profit": ["cfo"],
+    "amazon_fees": ["cfo"],
+    "misc": ["cfo"],
+    "net_margin": ["cfo"],
+    "opex": ["cfo"],
+    "ebitda": ["cfo"],
+    
+    # Organic endpoint metrics
+    "organic_impressions": ["organic"],
+    "organic_clicks": ["organic"],
+    "organic_orders": ["organic"],
+    "organic_units_sold": ["organic"],
+    "organic_cvr": ["organic"],
+    "organic_ctr": ["organic"],
+    "organic_sales": ["organic"],
+    "organic_lost_sales": ["organic"],
+    "organic_add_to_cart": ["organic"],
+    
+    # Attribution endpoint metrics
+    "attribution_sales": ["attribution"],
+    "attribution_spend": ["attribution"],
+    "attribution_impressions": ["attribution"],
+    "attribution_clicks": ["attribution"],
+    "attribution_units_sold": ["attribution"],
+    "attribution_orders": ["attribution"],
+    "attribution_ctr": ["attribution"],
+    "attribution_cvr": ["attribution"],
+    "attribution_acos": ["attribution"],
+    "attribution_roas": ["attribution"],
+    "attribution_cpc": ["attribution"],
+    "attribution_cpm": ["attribution"],
+    "attribution_add_to_cart": ["attribution"],
+    
+    # Inventory endpoint metrics
+    "safety_stock": ["inventory"],
+    "inventory_turnover": ["inventory"],
+    "fba_in_stock_rate": ["inventory"],
+}
+
+
+def normalize_metric_name(name: str) -> str:
+    """Normalize metric name to lowercase with underscores."""
+    return name.lower().replace(" ", "_").replace("-", "_")
+
+
+def build_lowercase_key_map(response_data: dict) -> Dict[str, Any]:
+    """Build a lowercase key -> value mapping from API response."""
+    return {normalize_metric_name(k): v for k, v in response_data.items()}
 
 
 class MetricsInput(BaseModel):
@@ -45,7 +133,7 @@ async def get_simple_metrics(metric_list: List[str], date_start: str, date_end: 
     """
     Retrieve specific metrics from Nyle backend APIs.
     
-    This tool intelligently determines which API endpoints to call based on the requested metrics,
+    This tool determines which API endpoints to call based on the requested metrics,
     fetches the data, and returns only the requested metrics in a structured JSON format.
     
     Args:
@@ -56,191 +144,92 @@ async def get_simple_metrics(metric_list: List[str], date_start: str, date_end: 
     Returns:
         JSON string containing only the requested metrics with their values
     """
-    global _current_context
-    _current_context = {
-        "metric_list": metric_list,
-        "date_start": date_start,
-        "date_end": date_end
-    }
-    
     logger.info(f"Simple Metrics Tool called with metrics: {metric_list}, dates: {date_start} to {date_end}")
     
-    settings = get_settings()
-    
-    # Define the 6 API tools
-    @tool
-    async def GET_ads_executive_summary() -> dict:
-        """
-        Fetch advertising metrics from Nyle backend.
-        
-        Returns: ad_sales, ad_spend, ad_clicks, ad_impressions, ad_units_sold, ad_orders, 
-                 acos, roas, cpc, cac, ad_ctr, ad_cvr, time_in_budget
-        """
-        logger.info("Calling GET_ads_executive_summary")
-        result = await metrics_api.get_ads_executive_summary(
-            _current_context["date_start"],
-            _current_context["date_end"]
-        )
-        logger.info("Retrieved ads executive summary")
-        return result
-    
-    @tool
-    async def GET_total_executive_summary() -> dict:
-        """
-        Fetch total/overall metrics from Nyle backend.
-        
-        Returns: total_sales, total_units_sold, total_spend, total_clicks, total_orders, 
-                 total_impressions, cvr, tacos, mer, net_proceeds, ctr, cogs, monthly_budget, 
-                 lost_sales, roi, contribution_margin, contribution_profit, gross_margin
-        """
-        logger.info("Calling GET_total_executive_summary")
-        result = await metrics_api.get_total_metrics_summary(
-            _current_context["date_start"],
-            _current_context["date_end"]
-        )
-        logger.info("Retrieved total executive summary")
-        return result
-    
-    @tool
-    async def GET_cfo_executive_summary() -> dict:
-        """
-        Fetch financial/CFO metrics from Nyle backend.
-        
-        Returns: available_capital, frozen_capital, borrowed_capital, lost_sales, 
-                 cost_of_goods_sold, gross_profit, net_profit, amazon_fees, misc, 
-                 contribution_profit, gross_margin, contribution_margin, net_margin, 
-                 opex, ebitda, roi
-        """
-        logger.info("Calling GET_cfo_executive_summary")
-        result = await metrics_api.get_financial_summary(
-            _current_context["date_start"],
-            _current_context["date_end"]
-        )
-        logger.info("Retrieved CFO executive summary")
-        return result
-    
-    @tool
-    async def GET_organic_executive_summary() -> dict:
-        """
-        Fetch organic performance metrics from Nyle backend.
-        
-        Returns: organic_impressions, organic_clicks, organic_orders, organic_units_sold, 
-                 organic_cvr, organic_ctr, organic_sales, organic_lost_sales, 
-                 organic_add_to_cart (+ all _what_if variants)
-        """
-        logger.info("Calling GET_organic_executive_summary")
-        result = await metrics_api.get_organic_metrics(
-            _current_context["date_start"],
-            _current_context["date_end"]
-        )
-        logger.info("Retrieved organic executive summary")
-        return result
-    
-    @tool
-    async def GET_attribution_executive_summary() -> dict:
-        """
-        Fetch attribution metrics from Nyle backend.
-        
-        Returns: attribution_sales, attribution_spend, attribution_impressions, 
-                 attribution_clicks, attribution_units_sold, attribution_orders, 
-                 attribution_ctr, attribution_cvr, attribution_acos, attribution_roas, 
-                 attribution_cpc, attribution_cpm, attribution_add_to_cart
-        """
-        logger.info("Calling GET_attribution_executive_summary")
-        result = await metrics_api.get_attribution_metrics(
-            _current_context["date_start"],
-            _current_context["date_end"]
-        )
-        logger.info("Retrieved attribution executive summary")
-        return result
-    
-    @tool
-    async def GET_inventory_metrics_executive_summary() -> dict:
-        """
-        Fetch inventory metrics from Nyle backend.
-        
-        Returns: safety_stock, inventory_turnover, fba_in_stock_rate
-        """
-        logger.info("Calling GET_inventory_metrics_executive_summary")
-        result = await metrics_api.get_inventory_status(
-            _current_context["date_start"],
-            _current_context["date_end"]
-        )
-        logger.info("Retrieved inventory metrics executive summary")
-        return result
-    
-    # Create the LLM
-    llm = ChatOpenAI(
-        model=settings.openai_model,
-        temperature=0,
-        api_key=settings.openai_api_key
-    )
-    
-    # Create the agent with all 6 tools
-    agent = create_agent(
-        llm,
-        tools=[
-            GET_ads_executive_summary,
-            GET_total_executive_summary,
-            GET_cfo_executive_summary,
-            GET_organic_executive_summary,
-            GET_attribution_executive_summary,
-            GET_inventory_metrics_executive_summary
-        ],
-        system_prompt=SIMPLE_METRICS_SYSTEM_PROMPT
-    )
-    
-    logger.info("Running simple metrics agent...")
-    
-    # Prepare the input message
-    input_message = f"""metrics list: {json.dumps(metric_list)}
-date_start: {date_start}
-date_end: {date_end}"""
-    
     try:
-        # Invoke the agent asynchronously (required for async tools)
-        result = await agent.ainvoke({
-            "messages": [("human", input_message)]
-        })
+        # Step 1: Determine ALL endpoints needed (including fallbacks)
+        endpoints_needed: Set[str] = set()
+        for metric in metric_list:
+            metric_normalized = normalize_metric_name(metric)
+            if metric_normalized in METRIC_TO_ENDPOINTS:
+                # Add all possible endpoints for this metric
+                endpoints_needed.update(METRIC_TO_ENDPOINTS[metric_normalized])
+            else:
+                logger.warning(f"Unknown metric: {metric}")
         
-        # Extract the final response
-        final_response = result["messages"][-1].content
+        logger.info(f"Endpoints needed: {endpoints_needed}")
         
-        logger.info(f"Agent completed. Response: {final_response}")
+        # Step 2: Call all required endpoints in parallel
+        api_tasks = {}
         
-        # Try to parse and validate the response as JSON
-        try:
-            # Clean up the response (remove markdown code blocks if present)
-            cleaned_response = final_response.strip()
-            if cleaned_response.startswith("```"):
-                # Remove markdown code blocks
-                lines = cleaned_response.split("\n")
-                cleaned_response = "\n".join([l for l in lines if not l.startswith("```")])
+        if "ads" in endpoints_needed:
+            api_tasks["ads"] = metrics_api.get_ads_executive_summary(date_start, date_end)
+        if "total" in endpoints_needed:
+            api_tasks["total"] = metrics_api.get_total_metrics_summary(date_start, date_end)
+        if "cfo" in endpoints_needed:
+            api_tasks["cfo"] = metrics_api.get_financial_summary(date_start, date_end)
+        if "organic" in endpoints_needed:
+            api_tasks["organic"] = metrics_api.get_organic_metrics(date_start, date_end)
+        if "attribution" in endpoints_needed:
+            api_tasks["attribution"] = metrics_api.get_attribution_metrics(date_start, date_end)
+        if "inventory" in endpoints_needed:
+            api_tasks["inventory"] = metrics_api.get_inventory_status(date_start, date_end)
+        
+        # Execute all API calls in parallel
+        api_responses: Dict[str, dict] = {}
+        api_responses_normalized: Dict[str, Dict[str, Any]] = {}  # lowercase key maps
+        
+        if api_tasks:
+            task_keys = list(api_tasks.keys())
+            task_values = list(api_tasks.values())
+            results = await asyncio.gather(*task_values, return_exceptions=True)
             
-            # Parse JSON to validate
-            parsed_metrics = json.loads(cleaned_response)
+            for key, result in zip(task_keys, results):
+                if isinstance(result, Exception):
+                    logger.error(f"Error calling {key} endpoint: {result}")
+                    api_responses[key] = {}
+                    api_responses_normalized[key] = {}
+                else:
+                    logger.info(f"Retrieved {key} data with keys: {list(result.keys()) if isinstance(result, dict) else 'not a dict'}")
+                    api_responses[key] = result
+                    api_responses_normalized[key] = build_lowercase_key_map(result)
+        
+        # Step 3: Extract requested metrics (try all endpoints for each metric)
+        result_metrics = {}
+        for metric in metric_list:
+            metric_normalized = normalize_metric_name(metric)
+            endpoints_to_try = METRIC_TO_ENDPOINTS.get(metric_normalized, [])
             
-            # Return structured response
-            output = {
-                "status": "success",
-                "metrics": parsed_metrics,
-                "message": f"Successfully retrieved {len(parsed_metrics)} metrics"
-            }
+            found = False
+            for endpoint in endpoints_to_try:
+                if endpoint in api_responses_normalized:
+                    normalized_response = api_responses_normalized[endpoint]
+                    if metric_normalized in normalized_response:
+                        result_metrics[metric] = normalized_response[metric_normalized]
+                        logger.info(f"Found {metric} in {endpoint} endpoint")
+                        found = True
+                        break
             
-            return json.dumps(output)
-            
-        except json.JSONDecodeError as e:
-            logger.warning(f"Failed to parse agent response as JSON: {e}")
-            # Return the raw response wrapped in our structure
-            output = {
-                "status": "success",
-                "metrics": {},
-                "message": final_response
-            }
-            return json.dumps(output)
+            if not found:
+                # Log available keys from all tried endpoints
+                all_available_keys = []
+                for endpoint in endpoints_to_try:
+                    if endpoint in api_responses:
+                        all_available_keys.extend(list(api_responses[endpoint].keys()))
+                logger.warning(f"Metric {metric} not found. Tried endpoints: {endpoints_to_try}. Available keys: {all_available_keys}")
+        
+        # Step 4: Return structured JSON
+        output = {
+            "status": "success",
+            "metrics": result_metrics,
+            "message": f"Successfully retrieved {len(result_metrics)} metrics"
+        }
+        
+        logger.info(f"Returning metrics: {result_metrics}")
+        return json.dumps(output)
     
     except Exception as e:
-        logger.error(f"Error in simple metrics agent: {str(e)}", exc_info=True)
+        logger.error(f"Error in simple metrics tool: {str(e)}", exc_info=True)
         output = {
             "status": "error",
             "metrics": {},

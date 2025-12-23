@@ -78,12 +78,13 @@ async def metrics_query_handler_node(state: AgentState) -> AgentState:
     
     logger.info("Running metrics query agent...")
     
-    result = await agent.ainvoke({
-        "messages": [(
+    result = await agent.ainvoke(
+        {"messages": [(
             "human",
             f"Question: {state['question']}\nDate: {state['date_start']} to {state['date_end']}"
-        )]
-    })
+        )]},
+        config={"recursion_limit": 10}
+    )
     
     state["response"] = result["messages"][-1].content
     logger.info("Generated response")

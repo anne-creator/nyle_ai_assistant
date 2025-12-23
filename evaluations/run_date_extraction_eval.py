@@ -5,7 +5,7 @@ Usage:
     python evaluations/run_date_extraction_eval.py
 
 Prerequisites:
-1. Set LANGSMITH_API_KEY environment variable
+1. Set LANGSMITH_API_KEY environment variable (or have it in .env.local)
 2. Upload dataset to LangSmith web console:
    - Name: nyle-dates-metrics-dataset
    - File: evaluations/datasets/dates_metrics_examples.csv
@@ -15,6 +15,10 @@ Prerequisites:
 import asyncio
 import sys
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from .env.local
+load_dotenv(dotenv_path=Path(__file__).parent.parent / ".env.local")
 
 # Add project root to path so we can import app modules
 project_root = Path(__file__).parent.parent
@@ -80,26 +84,37 @@ async def run_evaluation():
         
         print("\n✅ Evaluation complete!")
         print("\n📊 Results Summary:")
-        print(f"   Experiment ID: {results.get('experiment_id', 'N/A')}")
-        print(f"   Total examples: {len(results.get('results', []))}")
         
-        # Calculate accuracy if available
-        if 'results' in results:
-            total = len(results['results'])
-            if total > 0:
-                # Count how many passed the combined accuracy check
-                accuracy_scores = [
-                    r.get('evaluation_results', {}).get('results', [])
-                    for r in results['results']
-                ]
-                print(f"\n   View detailed results in LangSmith UI:")
-                print(f"   https://smith.langchain.com")
+        # AsyncExperimentResults object has different attributes
+        if hasattr(results, 'experiment_name'):
+            print(f"   Experiment: {results.experiment_name}")
         
-        print("\n🔗 View in LangSmith:")
+        if hasattr(results, 'results'):
+            total_examples = len(results.results)
+            print(f"   Total examples evaluated: {total_examples}")
+            
+            # Try to calculate pass rate from the results
+            if total_examples > 0:
+                try:
+                    passed = sum(1 for r in results.results 
+                               if hasattr(r, 'evaluation_results') 
+                               and r.evaluation_results 
+                               and any(e.score == 1.0 
+                                     for e in r.evaluation_results.get('results', [])
+                                     if hasattr(e, 'score')))
+                    print(f"   Examples with passing scores: {passed}/{total_examples}")
+                except:
+                    pass
+        
+        print("\n🔗 View Detailed Results in LangSmith:")
         print(f"   1. Go to https://smith.langchain.com")
-        print(f"   2. Navigate to 'Experiments'")
+        print(f"   2. Navigate to 'Experiments' tab")
         print(f"   3. Find experiment: {EvaluationConfig.DATES_METRICS_EXPERIMENT_PREFIX}")
-        print(f"   4. Click to view traces, scores, and individual runs")
+        print(f"   4. Click to view:")
+        print(f"      • Individual test case results")
+        print(f"      • Evaluator scores (exact_match, validity, logic)")
+        print(f"      • Full traces with LLM calls")
+        print(f"      • Input/output comparisons")
         
     except Exception as e:
         print(f"\n❌ Evaluation failed: {str(e)}")
