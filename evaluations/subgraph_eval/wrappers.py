@@ -1,8 +1,10 @@
 """
 Subgraph wrappers for evaluating the first 3 nodes together.
 
-Creates a linear subgraph: label_normalizer -> message_analyzer -> extractor_evaluator -> date_calculator
+Creates a linear subgraph: label_normalizer -> message_analyzer -> extractor_evaluator
 Each node's output is captured for LangSmith visibility.
+
+Note: message_analyzer (Node 2) now performs date calculation as pure Python logic (no AI).
 """
 import sys
 from pathlib import Path
@@ -23,7 +25,6 @@ from app.models.date_labels import DateLabelLiteral
 from app.graph.nodes.label_normalizer.node import label_normalizer_node
 from app.graph.nodes.message_analyzer.node import message_analyzer_node
 from app.graph.nodes.extractor_evaluator.node import extractor_evaluator_node
-from app.graph.nodes.date_calculator.node import date_calculator_node
 
 
 class SubgraphState(TypedDict):
@@ -63,7 +64,7 @@ class SubgraphState(TypedDict):
     _normalizer_retries: Optional[int]
     _normalizer_feedback: Optional[str]
     
-    # ========== Node 2/3 Outputs (after date_calculator) ==========
+    # ========== Node 2/3 Outputs (from message_analyzer) ==========
     date_start: Optional[str]
     date_end: Optional[str]
     compare_date_start: Optional[str]
@@ -109,29 +110,10 @@ def node1_wrapped(state: SubgraphState) -> SubgraphState:
 
 def node2_wrapped(state: SubgraphState) -> SubgraphState:
     """
-    Wrapper for message_analyzer_node.
+    Wrapper for message_analyzer_node with test date injection.
     
-    Note: In current graph, message_analyzer is a pass-through node.
-    """
-    result = message_analyzer_node(state)
-    return result
-
-
-def node3_wrapped(state: SubgraphState) -> SubgraphState:
-    """
-    Wrapper for extractor_evaluator_node.
-    
-    Note: In current graph, extractor_evaluator is a pass-through node.
-    """
-    result = extractor_evaluator_node(state)
-    return result
-
-
-def date_calculator_wrapped(state: SubgraphState) -> SubgraphState:
-    """
-    Wrapper for date_calculator_node that injects test current_date.
-    
-    This allows reproducible testing by mocking datetime.now().
+    Node 2 performs date calculation as pure Python logic.
+    This allows reproducible testing by injecting a test current_date.
     """
     test_date = state.get("_test_current_date")
     
@@ -149,18 +131,31 @@ def date_calculator_wrapped(state: SubgraphState) -> SubgraphState:
             from datetime import timezone
             mock_dt.now.return_value = datetime.combine(mock_date, datetime.min.time()).replace(tzinfo=timezone.utc)
             
-            result = date_calculator_node(state)
+            result = message_analyzer_node(state)
     else:
-        result = date_calculator_node(state)
+        result = message_analyzer_node(state)
     
+    return result
+
+
+def node3_wrapped(state: SubgraphState) -> SubgraphState:
+    """
+    Wrapper for extractor_evaluator_node.
+    
+    Note: In current graph, extractor_evaluator is a pass-through node.
+    """
+    result = extractor_evaluator_node(state)
     return result
 
 
 def create_three_node_subgraph():
     """
-    Create evaluation subgraph: label_normalizer -> message_analyzer -> extractor_evaluator -> date_calculator.
+    Create evaluation subgraph: label_normalizer -> message_analyzer -> extractor_evaluator.
     
-    This tests the first 3 extraction nodes plus date calculation.
+    This tests the first 3 nodes of the pipeline:
+    - Node 1 (label_normalizer): Extracts date labels using AI
+    - Node 2 (message_analyzer): Converts labels to dates (pure Python)
+    - Node 3 (extractor_evaluator): Validates extraction (pass-through)
     
     Returns:
         Compiled StateGraph for evaluation
@@ -171,14 +166,12 @@ def create_three_node_subgraph():
     workflow.add_node("label_normalizer", node1_wrapped)
     workflow.add_node("message_analyzer", node2_wrapped)
     workflow.add_node("extractor_evaluator", node3_wrapped)
-    workflow.add_node("date_calculator", date_calculator_wrapped)
     
     # Wire edges
     workflow.add_edge(START, "label_normalizer")
     workflow.add_edge("label_normalizer", "message_analyzer")
     workflow.add_edge("message_analyzer", "extractor_evaluator")
-    workflow.add_edge("extractor_evaluator", "date_calculator")
-    workflow.add_edge("date_calculator", END)
+    workflow.add_edge("extractor_evaluator", END)
     
     return workflow.compile()
 
@@ -187,7 +180,7 @@ def create_subgraph_target():
     """
     Create the full evaluation target for LangSmith.
     
-    Pipeline: example_to_state -> 3-node subgraph -> date_calculator
+    Pipeline: example_to_state -> 3-node subgraph
     
     Returns:
         Runnable chain for aevaluate()

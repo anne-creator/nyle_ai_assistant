@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 class LabelExtraction(BaseModel):
     """
     Structured output from the label normalizer.
-    Extracts date labels and ASIN with self-evaluation.
+    Extracts date labels and ASIN.
     """
     
     # Date Labels (primary period)
@@ -69,15 +69,6 @@ class LabelExtraction(BaseModel):
         default=None,
         description="Amazon ASIN (10-character alphanumeric code)"
     )
-    
-    # Self-evaluation
-    is_valid: bool = Field(
-        description="Whether the extraction is valid"
-    )
-    validation_feedback: Optional[str] = Field(
-        default=None,
-        description="Feedback on what needs improvement if not valid"
-    )
 
 
 def validate_asin(asin: str) -> bool:
@@ -112,13 +103,12 @@ def extract_asin_from_text(text: str) -> Optional[str]:
 
 def label_normalizer_node(state: AgentState) -> AgentState:
     """
-    FIRST NODE: Extracts date labels and ASIN with self-evaluation and retry.
+    FIRST NODE: Extracts date labels and ASIN from user question.
     
     Features:
     - Extracts date labels for primary and comparison periods
     - Extracts ASIN (if present)
-    - Self-evaluates the extraction
-    - Retries up to 3 times if extraction is not valid
+    - Validates and corrects ASIN using regex
     """
     
     question = state["question"]
@@ -134,70 +124,39 @@ def label_normalizer_node(state: AgentState) -> AgentState:
     # Bind structured output
     llm_with_structure = llm.with_structured_output(LabelExtraction)
     
-    max_retries = 3
-    retry_count = 0
-    feedback = "First attempt - no feedback yet."
-    extraction = None
+    # Get current year for explicit dates
+    from datetime import datetime
+    current_year = datetime.now().year
     
-    while retry_count < max_retries:
-        logger.info(f"🔄 Extraction attempt {retry_count + 1}/{max_retries}")
+    # Create prompt
+    prompt = LABEL_NORMALIZER_PROMPT.format(
+        question=question,
+        current_year=current_year
+    )
+    
+    try:
+        extraction = llm_with_structure.invoke(prompt)
         
-        # Create prompt with feedback
-        prompt = LABEL_NORMALIZER_PROMPT.format(
-            question=question,
-            feedback=feedback
-        )
+        # Validate ASIN if extracted
+        if extraction.asin:
+            # Try to extract from original text first (more reliable)
+            extracted_asin = extract_asin_from_text(question)
+            if extracted_asin:
+                extraction.asin = extracted_asin
+                logger.info(f"📦 ASIN found: {extraction.asin}")
+            elif not validate_asin(extraction.asin):
+                logger.warning(f"❌ Invalid ASIN format: {extraction.asin}, setting to None")
+                extraction.asin = None
         
-        try:
-            extraction = llm_with_structure.invoke(prompt)
-            
-            # Validate ASIN if extracted
-            if extraction.asin:
-                # Try to extract from original text first (more reliable)
-                extracted_asin = extract_asin_from_text(question)
-                if extracted_asin:
-                    extraction.asin = extracted_asin
-                    logger.info(f"📦 ASIN found: {extraction.asin}")
-                elif not validate_asin(extraction.asin):
-                    logger.warning(f"❌ Invalid ASIN format: {extraction.asin}, setting to None")
-                    extraction.asin = None
-            
-            # Check if extraction is valid
-            if extraction.is_valid:
-                logger.info(f"✅ Extraction valid on attempt {retry_count + 1}")
-                break
-            else:
-                retry_count += 1
-                feedback = extraction.validation_feedback or "Extraction not valid, please try again."
-                logger.warning(f"⚠️ Extraction not valid: {feedback}")
+        logger.info(f"✅ Extraction completed")
                 
-                if retry_count >= max_retries:
-                    logger.warning(f"❌ Max retries reached, using last extraction")
-                    break
-                    
-        except Exception as e:
-            logger.error(f"❌ Error extracting labels: {e}")
-            retry_count += 1
-            feedback = f"Error occurred: {str(e)}. Please try again."
-            
-            if retry_count >= max_retries:
-                logger.error("❌ Max retries reached with errors, using defaults")
-                # Fallback to safe defaults
-                state["_date_start_label"] = "default"
-                state["_date_end_label"] = "default"
-                state["_compare_date_start_label"] = None
-                state["_compare_date_end_label"] = None
-                state["_explicit_date_start"] = None
-                state["_explicit_date_end"] = None
-                state["_explicit_compare_start"] = None
-                state["_explicit_compare_end"] = None
-                state["_custom_days_count"] = None
-                state["_custom_compare_days_count"] = None
-                state["asin"] = None
-                state["_normalizer_valid"] = False
-                state["_normalizer_retries"] = retry_count
-                state["_normalizer_feedback"] = feedback
-                return state
+    except Exception as e:
+        logger.error(f"❌ Error extracting labels: {e}")
+        # Return state with error indication
+        state["_normalizer_valid"] = False
+        state["_normalizer_retries"] = 0
+        state["_normalizer_feedback"] = f"Error: {str(e)}"
+        return state
     
     # Update state with extracted information
     if extraction:
@@ -219,15 +178,14 @@ def label_normalizer_node(state: AgentState) -> AgentState:
         # ASIN
         state["asin"] = extraction.asin
         
-        # Validation metadata
-        state["_normalizer_valid"] = extraction.is_valid
-        state["_normalizer_retries"] = retry_count
-        state["_normalizer_feedback"] = extraction.validation_feedback
+        # Validation metadata (always valid now, no self-evaluation)
+        state["_normalizer_valid"] = True
+        state["_normalizer_retries"] = 0
+        state["_normalizer_feedback"] = None
         
         logger.info(f"📊 Extracted labels: start={extraction.date_start_label}, end={extraction.date_end_label}")
         if extraction.compare_date_start_label:
             logger.info(f"📊 Comparison labels: start={extraction.compare_date_start_label}, end={extraction.compare_date_end_label}")
-        logger.info(f"✅ Extraction completed with {retry_count} retries")
     
     return state
 

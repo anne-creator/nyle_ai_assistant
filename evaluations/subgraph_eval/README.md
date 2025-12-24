@@ -1,6 +1,6 @@
 # 3-Node Subgraph Evaluation
 
-Evaluate the first 3 nodes of the pipeline together: `label_normalizer → message_analyzer → extractor_evaluator → date_calculator`
+Evaluate the first 3 nodes of the pipeline together: `label_normalizer (the node1) → message_analyzer(the node 2) → extractor_evaluator(the ndoe3)`
 
 ## Files Structure
 
@@ -28,7 +28,9 @@ evaluations/subgraph_eval/
 | `node1_explicit_dates` | Explicit start/end dates match (YYYY-MM-DD) | 1.0 or 0.0 |
 | `node1_explicit_compare_dates` | Explicit comparison dates match | 1.0 or 0.0 |
 
-### Node 2 (date_calculator) - 5 Evaluators
+### Node 2 (message_analyzer) - 5 Evaluators
+
+Node 2 is a **pure Python deterministic node** (no AI) that converts date labels from Node 1 into actual ISO dates.
 
 | Evaluator | Criteria | Score |
 |-----------|----------|-------|

@@ -53,6 +53,7 @@ class DateCalculator:
             "this_week": self._this_week,
             "last_week": self._last_week,
             "this_month": self._this_month,
+            "mtd": self._mtd,
             "last_month": self._last_month,
             "this_year": self._this_year,
             "last_year": self._last_year,
@@ -116,11 +117,13 @@ class DateCalculator:
         )
     
     def _this_week(self) -> Tuple[str, str]:
+        """This calendar week: Monday to Sunday (full week)"""
         weekday = self.current_date.weekday()
         monday = self.current_date - timedelta(days=weekday)
+        sunday = monday + timedelta(days=6)
         return (
             monday.strftime("%Y-%m-%d"),
-            self.current_date.strftime("%Y-%m-%d")
+            sunday.strftime("%Y-%m-%d")
         )
     
     def _last_week(self) -> Tuple[str, str]:
@@ -133,6 +136,17 @@ class DateCalculator:
         )
     
     def _this_month(self) -> Tuple[str, str]:
+        """This calendar month: First day to last day of month (full month)"""
+        first_day = self.current_date.replace(day=1)
+        last_day = calendar.monthrange(self.current_date.year, self.current_date.month)[1]
+        last_day_date = self.current_date.replace(day=last_day)
+        return (
+            first_day.strftime("%Y-%m-%d"),
+            last_day_date.strftime("%Y-%m-%d")
+        )
+    
+    def _mtd(self) -> Tuple[str, str]:
+        """Month-to-Date: First day of current month to today"""
         first_day = self.current_date.replace(day=1)
         return (
             first_day.strftime("%Y-%m-%d"),
