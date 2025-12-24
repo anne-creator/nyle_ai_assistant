@@ -39,7 +39,7 @@ question,question_type
 "What day had the best performance?",hardcoded
 "How many units of B08XYZ123 did I sell yesterday/today?",asin_product
 "What are my top 5 selling ASINs this month?",asin_product
-"How are my sales doing today?",asin_product
+"How are my sales doing today?",metrics_query
 "What is my ad salesfor ASIN: B08XYZ123",asin_product
 "What is my organic sales for ASIN: B08XYZ123",asin_product
 
