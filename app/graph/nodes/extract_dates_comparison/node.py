@@ -2,7 +2,7 @@ from langchain_openai import ChatOpenAI
 from datetime import datetime, timezone
 import logging
 
-from app.models.state import AgentState
+from app.models.agentState import AgentState
 from app.models.extraction import ComparisonDateRange
 from app.config import get_settings
 from app.graph.nodes.extract_dates_comparison.prompt import EXTRACT_DATES_COMPARISON_PROMPT

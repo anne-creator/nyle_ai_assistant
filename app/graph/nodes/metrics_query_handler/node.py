@@ -4,7 +4,7 @@ from langchain_core.tools import tool
 from typing import List
 import logging
 
-from app.models.state import AgentState
+from app.models.agentState import AgentState
 from app.config import get_settings
 from app.graph.nodes.metrics_query_handler.prompt import METRICS_QUERY_SYSTEM_PROMPT
 from app.graph.nodes.metrics_query_handler.simple_metrics_tool import get_simple_metrics

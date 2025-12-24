@@ -1,7 +1,7 @@
 from langchain_openai import ChatOpenAI
 import logging
 
-from app.models.state import AgentState
+from app.models.agentState import AgentState
 from app.config import get_settings
 from app.graph.nodes.classifier.prompt import CLASSIFIER_PROMPT
 
