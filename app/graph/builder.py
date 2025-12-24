@@ -7,7 +7,6 @@ from app.graph.nodes import (
     message_analyzer_node,
     extractor_evaluator_node,
     classify_question_node,
-    date_calculator_node,
     metrics_query_handler_node,
     compare_query_handler_node,
     asin_product_handler_node,
@@ -38,8 +37,7 @@ def create_chatbot_graph():
     2. message_analyzer: Pass-through node (does nothing)
     3. extractor_evaluator: Pass-through node (does nothing)
     4. classifier: Classifies question type
-    5. date_calculator: Calculates actual dates from labels
-    6. Route to appropriate handler based on question type
+    5. Route to appropriate handler based on question type
     """
     
     # Create graph
@@ -50,7 +48,6 @@ def create_chatbot_graph():
     workflow.add_node("message_analyzer", message_analyzer_node)
     workflow.add_node("extractor_evaluator", extractor_evaluator_node)
     workflow.add_node("classifier", classify_question_node)
-    workflow.add_node("date_calculator", date_calculator_node)
     
     # Add handler nodes
     workflow.add_node("metrics_query_handler", metrics_query_handler_node)
@@ -61,16 +58,15 @@ def create_chatbot_graph():
     # Set entry point
     workflow.set_entry_point("label_normalizer")
     
-    # Chain: label_normalizer → message_analyzer → extractor_evaluator → classifier → date_calculator → route to handlers
+    # Chain: label_normalizer → message_analyzer → extractor_evaluator → classifier → route to handlers
     workflow.add_edge("label_normalizer", "message_analyzer")
     workflow.add_edge("message_analyzer", "extractor_evaluator")
     workflow.add_edge("extractor_evaluator", "classifier")
-    workflow.add_edge("classifier", "date_calculator")
     
-    # Conditional routing after date calculation
+    # Conditional routing after classification
     # The keys here must match what route_by_question_type RETURNS (node names)
     workflow.add_conditional_edges(
-        "date_calculator",
+        "classifier",
         route_by_question_type,
         {
             "metrics_query_handler": "metrics_query_handler",

@@ -89,7 +89,7 @@ pytest tests/test_nodes.py -v
 
 ### 3-Node Subgraph Evaluation
 
-Evaluate the first 3 nodes of the pipeline together: `label_normalizer → message_analyzer → extractor_evaluator → date_calculator`
+Evaluate the first 3 nodes of the pipeline together: `label_normalizer → message_analyzer → extractor_evaluator`
 
 **Location:** `evaluations/subgraph_eval/`
 
@@ -118,15 +118,11 @@ evaluations/subgraph_eval/
 | `node1_explicit_dates` | Explicit start/end dates match (YYYY-MM-DD) | 1.0 or 0.0 |
 | `node1_explicit_compare_dates` | Explicit comparison dates match | 1.0 or 0.0 |
 
-**Node 2 (date_calculator) - 5 Evaluators:**
+**Node 2 (message_analyzer) - Pass-through node:**
+- Currently does nothing (pass-through mode)
 
-| Evaluator | Criteria | Score |
-|-----------|----------|-------|
-| `node2_date_start` | Calculated date_start matches expected | 1.0 or 0.0 |
-| `node2_date_end` | Calculated date_end matches expected | 1.0 or 0.0 |
-| `node2_compare_dates` | Both comparison dates match | 1.0 or 0.0 |
-| `node2_date_validity` | Both dates are valid YYYY-MM-DD format | 1.0 or 0.0 |
-| `node2_date_logic` | date_start ≤ date_end | 1.0 or 0.0 |
+**Node 3 (extractor_evaluator) - Pass-through node:**
+- Currently does nothing (pass-through mode)
 
 **Pass-Through (metadata capture) - 3 Evaluators:**
 
@@ -140,7 +136,7 @@ evaluations/subgraph_eval/
 
 | Evaluator | Criteria | Score |
 |-----------|----------|-------|
-| `pipeline_accuracy` | ALL Node 1 + Node 2 evaluators pass | 1.0 only if all pass |
+| `pipeline_accuracy` | ALL Node 1 evaluators pass | 1.0 only if all pass |
 
 #### How to Run
 
@@ -149,7 +145,7 @@ evaluations/subgraph_eval/
    - Create dataset named: `nyle-subgraph-dataset`
    - Upload: `evaluations/subgraph_eval/dataset.csv`
    - Set **Inputs**: `question`, `current_date`, `http_asin`, `http_date_start`, `http_date_end`, `sessionid`
-   - Set **Outputs**: all `node1_*` and `node2_*` columns
+   - Set **Outputs**: all `node1_*` columns (date labels, ASIN, validation metadata)
 
 2. **Run evaluation:**
    ```bash
@@ -225,9 +221,47 @@ State object passed through the LangGraph execution:
 ### Graph Flow
 
 ```
-START → Classifier → Date Extraction → Handler → END
-                         ↓
-              (metrics/comparison/asin)
+START
+  ↓
+┌─────────────────────────────────┐
+│   label_normalizer             │  ← FIRST NODE (Active)
+│                                 │
+│ - Extracts date labels         │
+│ - Extracts ASIN                 │
+│ - Self-evaluates extraction     │
+│ - Retries up to 3 times if     │
+│   extraction not valid          │
+└────────────┬────────────────────┘
+             ↓
+┌─────────────────────────────────┐
+│   message_analyzer              │  ← PASS-THROUGH (does nothing)
+└────────────┬────────────────────┘
+             ↓
+┌─────────────────────────────────┐
+│   extractor_evaluator           │  ← PASS-THROUGH (does nothing)
+└────────────┬────────────────────┘
+             ↓
+┌─────────────────────────────────┐
+│   classifier                    │  ← Classifies question type
+│                                 │
+│ - metrics_query                 │
+│ - compare_query                 │
+│ - asin_product                  │
+│ - hardcoded                     │
+│                                 │
+│ + Re-classifies if ASIN found   │
+└────────────┬────────────────────┘
+             ↓
+        Route by type
+             ↓
+    ┌────────┴────────┬──────────────┬──────────────┐
+    ↓                 ↓              ↓              ↓
+metrics_query    compare_query  asin_product   hardcoded
+  handler          handler        handler      response
+    ↓                 ↓              ↓              ↓
+    └─────────────────┴──────────────┴──────────────┘
+                      ↓
+                     END
 ```
 
 ## LangSmith
@@ -271,10 +305,10 @@ app/
 └── graph/
     ├── builder.py       # LangGraph construction
     └── nodes/           # Node implementations
-        ├── classifier/
-        ├── extract_dates_metrics/
-        ├── extract_dates_comparison/
-        ├── extract_dates_asin/
+        ├── label_normalizer/      # Extracts date labels and ASIN (with retry)
+        ├── message_analyzer/      # Pass-through node
+        ├── extractor_evaluator/   # Pass-through node
+        ├── classifier/            # Classifies question type
         ├── metrics_query_handler/
         ├── compare_query_handler/
         ├── asin_product_handler/
