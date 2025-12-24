@@ -81,11 +81,6 @@ class DateCalculator:
             "november": lambda: self._month_range(11),
             "december": lambda: self._month_range(12),
             
-            # Quarters
-            "q1": lambda: self._quarter_range(1),
-            "q2": lambda: self._quarter_range(2),
-            "q3": lambda: self._quarter_range(3),
-            "q4": lambda: self._quarter_range(4),
             
             # Default
             "default": lambda: self._past_x_days(7),
@@ -184,17 +179,3 @@ class DateCalculator:
             f"{year}-{month:02d}-{last_day:02d}"
         )
     
-    def _quarter_range(self, quarter: int) -> Tuple[str, str]:
-        year = self.current_date.year
-        quarter_months = {
-            1: (1, 3),
-            2: (4, 6),
-            3: (7, 9),
-            4: (10, 12)
-        }
-        start_month, end_month = quarter_months[quarter]
-        last_day = calendar.monthrange(year, end_month)[1]
-        return (
-            f"{year}-{start_month:02d}-01",
-            f"{year}-{end_month:02d}-{last_day:02d}"
-        )

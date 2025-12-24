@@ -142,7 +142,14 @@ def node3_wrapped(state: SubgraphState) -> SubgraphState:
     """
     Wrapper for extractor_evaluator_node.
     
-    Note: In current graph, extractor_evaluator is a pass-through node.
+    Node 3 is now an AI-powered evaluator that:
+    - Validates Node 1 label extraction accuracy
+    - Validates Node 2 date calculation correctness
+    - Provides feedback for regeneration
+    - Manages retry counter (max 3 attempts)
+    
+    Note: The retry loop is handled in the main graph builder.
+    This wrapper just runs the node once per invocation.
     """
     result = extractor_evaluator_node(state)
     return result
@@ -153,9 +160,12 @@ def create_three_node_subgraph():
     Create evaluation subgraph: label_normalizer -> message_analyzer -> extractor_evaluator.
     
     This tests the first 3 nodes of the pipeline:
-    - Node 1 (label_normalizer): Extracts date labels using AI
-    - Node 2 (message_analyzer): Converts labels to dates (pure Python)
-    - Node 3 (extractor_evaluator): Validates extraction (pass-through)
+    - Node 1 (label_normalizer): Extracts date labels using AI (supports feedback-driven retry)
+    - Node 2 (message_analyzer): Converts labels to dates (pure Python, deterministic)
+    - Node 3 (extractor_evaluator): AI-powered validator that provides feedback
+    
+    Note: For evaluation purposes, this subgraph does NOT include the retry loop.
+    The retry loop is only active in the main production graph.
     
     Returns:
         Compiled StateGraph for evaluation
@@ -167,7 +177,7 @@ def create_three_node_subgraph():
     workflow.add_node("message_analyzer", node2_wrapped)
     workflow.add_node("extractor_evaluator", node3_wrapped)
     
-    # Wire edges
+    # Wire edges (linear flow for evaluation - no retry loop)
     workflow.add_edge(START, "label_normalizer")
     workflow.add_edge("label_normalizer", "message_analyzer")
     workflow.add_edge("message_analyzer", "extractor_evaluator")

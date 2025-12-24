@@ -109,10 +109,20 @@ def label_normalizer_node(state: AgentState) -> AgentState:
     - Extracts date labels for primary and comparison periods
     - Extracts ASIN (if present)
     - Validates and corrects ASIN using regex
+    - Supports feedback-driven regeneration from Node 3 evaluator
     """
     
     question = state["question"]
-    logger.info(f"🔍 Extracting labels from: '{question}'")
+    
+    # Check if this is a retry with feedback
+    feedback = state.get("_normalizer_feedback")
+    retry_count = state.get("_normalizer_retries", 0)
+    
+    if feedback and retry_count > 0:
+        logger.info(f"🔄 Retry attempt #{retry_count}: Re-extracting labels with feedback")
+        logger.info(f"💡 Feedback: {feedback}")
+    else:
+        logger.info(f"🔍 Extracting labels from: '{question}'")
     
     settings = get_settings()
     llm = ChatOpenAI(
@@ -128,10 +138,27 @@ def label_normalizer_node(state: AgentState) -> AgentState:
     from datetime import datetime
     current_year = datetime.now().year
     
-    # Create prompt
+    # Build feedback section for prompt
+    if feedback and retry_count > 0:
+        feedback_section = f"""
+⚠️ **CORRECTION REQUIRED** (Retry #{retry_count})
+The previous extraction had issues. Please fix them:
+
+{feedback}
+
+**Pay close attention to the feedback above and correct the extraction accordingly.**
+"""
+        feedback_reminder = f"\n9. **IMPORTANT**: Address the feedback above - {feedback}"
+    else:
+        feedback_section = "No previous feedback (first attempt)."
+        feedback_reminder = ""
+    
+    # Create prompt with feedback
     prompt = LABEL_NORMALIZER_PROMPT.format(
         question=question,
-        current_year=current_year
+        current_year=current_year,
+        feedback_section=feedback_section,
+        feedback_reminder=feedback_reminder
     )
     
     try:
@@ -178,10 +205,12 @@ def label_normalizer_node(state: AgentState) -> AgentState:
         # ASIN
         state["asin"] = extraction.asin
         
-        # Validation metadata (always valid now, no self-evaluation)
-        state["_normalizer_valid"] = True
-        state["_normalizer_retries"] = 0
-        state["_normalizer_feedback"] = None
+        # Don't set validation metadata here - Node 3 will handle it
+        # Just clear any old feedback if this is first attempt
+        if retry_count == 0:
+            state["_normalizer_valid"] = None
+            state["_normalizer_retries"] = 0
+            state["_normalizer_feedback"] = None
         
         logger.info(f"📊 Extracted labels: start={extraction.date_start_label}, end={extraction.date_end_label}")
         if extraction.compare_date_start_label:

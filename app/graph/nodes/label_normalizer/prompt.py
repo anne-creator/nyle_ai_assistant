@@ -25,8 +25,6 @@ LABEL_NORMALIZER_PROMPT = """You are a label extractor that extracts date labels
 ### Months
 - january, february, march, april, may, june, july, august, september, october, november, december
 
-### Quarters
-- q1 (Jan-Mar), q2 (Apr-Jun), q3 (Jul-Sep), q4 (Oct-Dec)
 
 ### Explicit Dates
 - explicit_date → When user mentions specific dates like "October 15" or "Dec 3"
@@ -34,7 +32,7 @@ LABEL_NORMALIZER_PROMPT = """You are a label extractor that extracts date labels
   - **If no year specified, use current year: {current_year}**
 
 ### Default
-- default → No date mentioned (will become past_7_days)
+- default → No specific date mentioned (system will default to past 7 days)
 
 ---
 
@@ -59,20 +57,30 @@ For a single time period, both start and end MUST use the SAME label.
 **Rule 3: Comparison structure - "Compare X to/and/vs Y"**
 
 Extract each period separately:
-- **Primary period**: First mentioned period (X) → date_start_label, date_end_label (BOTH must be same)
-- **Comparison period**: Second mentioned period (Y) → compare_date_start_label, compare_date_end_label (BOTH must be same)
+- **Primary period**: The MORE RECENT/LATEST period → date_start_label, date_end_label (BOTH must be same)
+- **Comparison period**: The EARLIER period → compare_date_start_label, compare_date_end_label (BOTH must be same)
+
+**CRITICAL: Always put the more recent period as PRIMARY, regardless of word order in the question.**
 
 **IMPORTANT**: If the question does NOT contain comparison keywords (compare, vs, versus, to, versus, against), 
 set compare_date_start_label and compare_date_end_label to null.
 
 Examples:
-- "Compare September to December" → 
-  - Primary: date_start_label="september", date_end_label="september"
-  - Comparison: compare_date_start_label="december", compare_date_end_label="december"
+- "Compare September to December" → December is more recent
+  - Primary: date_start_label="december", date_end_label="december" ✅ (more recent)
+  - Comparison: compare_date_start_label="september", compare_date_end_label="september" (earlier)
 
-- "Compare past week with this week" →
-  - Primary: date_start_label="last_week", date_end_label="last_week"
-  - Comparison: compare_date_start_label="this_week", compare_date_end_label="this_week"
+- "Compare past week with this week" → This week is more recent
+  - Primary: date_start_label="this_week", date_end_label="this_week" ✅ (more recent)
+  - Comparison: compare_date_start_label="last_week", compare_date_end_label="last_week" (earlier)
+
+- "Compare today and yesterday" → Today is more recent
+  - Primary: date_start_label="today", date_end_label="today" ✅ (more recent)
+  - Comparison: compare_date_start_label="yesterday", compare_date_end_label="yesterday" (earlier)
+
+- "Compare yesterday and today" → Today is more recent (same result despite word order)
+  - Primary: date_start_label="today", date_end_label="today" ✅ (more recent)
+  - Comparison: compare_date_start_label="yesterday", compare_date_end_label="yesterday" (earlier)
 
 - "What is today's ROI" → (NO comparison)
   - Primary: date_start_label="today", date_end_label="today"
@@ -146,6 +154,9 @@ Output:
 
 ---
 
+## Previous Evaluation Feedback
+{feedback_section}
+
 ## Current Year
 {current_year}
 
@@ -155,9 +166,12 @@ Output:
 Extract labels and ASIN now. CRITICAL REMINDERS:
 1. **date_start_label MUST equal date_end_label** for each period
 2. **compare_date_start_label MUST equal compare_date_end_label** for comparison period
-3. **Set comparison labels to null if NO comparison keywords** (compare/vs/versus/to/against) in question
-4. For "Compare X to Y": Extract X as primary (date_start/end), Y as comparison (compare_date_start/end)
-5. Use specific labels over generic (past_7_days > past_days)
-6. Extract ASIN if present (10-char alphanumeric)
-7. Explicit dates: Use {current_year} if no year given
+3. **PRIMARY = more recent period, COMPARISON = earlier period** (ignore word order)
+4. **Set comparison labels to null if NO comparison keywords** (compare/vs/versus/to/against) in question
+5. For "Compare X to Y": Extract more recent as primary, earlier as comparison
+6. Use specific labels over generic (past_7_days > past_days)
+7. Extract ASIN if present (10-char alphanumeric)
+8. Explicit dates: Use {current_year} if no year given
+{feedback_reminder}
 """
+

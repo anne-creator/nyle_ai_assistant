@@ -18,7 +18,6 @@ Analyzes the user message and extracts **4 date label fields**:
 - Past days: `past_7_days`, `past_14_days`, `past_30_days`, `past_60_days`, `past_90_days`, `past_180_days`
 - Custom days: `past_days` (requires `custom_days_count`)
 - Months: `january`, `february`, ..., `december`
-- Quarters: `q1`, `q2`, `q3`, `q4`
 - Special: `explicit_date` (requires explicit date metadata), `default`
 
 ### 2. ASIN Extraction

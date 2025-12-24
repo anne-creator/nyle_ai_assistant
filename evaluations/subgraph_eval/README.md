@@ -92,7 +92,6 @@ The dataset includes **46 examples** covering:
 - **Relative dates:** today, yesterday, this week, last week
 - **Year periods:** this year, last year, YTD
 - **Months:** December, June, etc.
-- **Quarters:** Q3 (last quarter)
 - **Past X days:** past 7 days, past 90 days, custom (past 17 days)
 - **Explicit dates:** "Oct 1 to Dec 3", "Dec 1 to Oct 15"
 - **Comparisons:** "today vs yesterday", "this week vs last week", "Sep to Dec"
