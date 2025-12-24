@@ -85,6 +85,95 @@ pytest tests/ --cov=app --cov-report=html
 pytest tests/test_nodes.py -v
 ```
 
+## Evaluations
+
+### 3-Node Subgraph Evaluation
+
+Evaluate the first 3 nodes of the pipeline together: `label_normalizer → message_analyzer → extractor_evaluator → date_calculator`
+
+**Location:** `evaluations/subgraph_eval/`
+
+#### Files Structure
+
+```
+evaluations/subgraph_eval/
+├── config.py          # Configuration (dataset name, experiment prefix)
+├── dataset.csv        # 46 test examples (23 without ASIN + 23 with ASIN)
+├── evaluators.py      # All evaluator functions
+├── wrappers.py        # Subgraph builder + state conversion
+└── run_eval.py        # Main runner script
+```
+
+#### Evaluator Standards
+
+**Node 1 (label_normalizer) - 7 Evaluators:**
+
+| Evaluator | Criteria | Score |
+|-----------|----------|-------|
+| `node1_date_start_label` | Exact match of date_start_label | 1.0 or 0.0 |
+| `node1_date_end_label` | Exact match of date_end_label | 1.0 or 0.0 |
+| `node1_asin` | Exact match (empty string = no ASIN) | 1.0 or 0.0 |
+| `node1_compare_labels` | Both compare_start and compare_end labels match | 1.0 or 0.0 |
+| `node1_custom_days` | custom_days_count matches (for "past 17 days" etc.) | 1.0 or 0.0 |
+| `node1_explicit_dates` | Explicit start/end dates match (YYYY-MM-DD) | 1.0 or 0.0 |
+| `node1_explicit_compare_dates` | Explicit comparison dates match | 1.0 or 0.0 |
+
+**Node 2 (date_calculator) - 5 Evaluators:**
+
+| Evaluator | Criteria | Score |
+|-----------|----------|-------|
+| `node2_date_start` | Calculated date_start matches expected | 1.0 or 0.0 |
+| `node2_date_end` | Calculated date_end matches expected | 1.0 or 0.0 |
+| `node2_compare_dates` | Both comparison dates match | 1.0 or 0.0 |
+| `node2_date_validity` | Both dates are valid YYYY-MM-DD format | 1.0 or 0.0 |
+| `node2_date_logic` | date_start ≤ date_end | 1.0 or 0.0 |
+
+**Pass-Through (metadata capture) - 3 Evaluators:**
+
+| Evaluator | Criteria | Score |
+|-----------|----------|-------|
+| `normalizer_valid_passthrough` | Captures `_normalizer_valid` value | Always 1.0 |
+| `normalizer_retries_passthrough` | Captures `_normalizer_retries` value | Always 1.0 |
+| `normalizer_feedback_passthrough` | Captures `_normalizer_feedback` value | Always 1.0 |
+
+**Combined - 1 Evaluator:**
+
+| Evaluator | Criteria | Score |
+|-----------|----------|-------|
+| `pipeline_accuracy` | ALL Node 1 + Node 2 evaluators pass | 1.0 only if all pass |
+
+#### How to Run
+
+1. **Upload dataset to LangSmith:**
+   - Go to https://smith.langchain.com
+   - Create dataset named: `nyle-subgraph-dataset`
+   - Upload: `evaluations/subgraph_eval/dataset.csv`
+   - Set **Inputs**: `question`, `current_date`, `http_asin`, `http_date_start`, `http_date_end`, `sessionid`
+   - Set **Outputs**: all `node1_*` and `node2_*` columns
+
+2. **Run evaluation:**
+   ```bash
+   python evaluations/subgraph_eval/run_eval.py
+   ```
+
+3. **View results:**
+   - Go to https://smith.langchain.com
+   - Navigate to **Experiments** tab
+   - Find experiment: `subgraph-eval-*`
+   - Inspect per-node outputs and evaluator scores
+
+#### Dataset Examples
+
+The dataset includes 46 examples covering:
+- **Relative dates:** today, yesterday, this week, last week
+- **Year periods:** this year, last year, YTD
+- **Months:** December, June, etc.
+- **Quarters:** Q3 (last quarter)
+- **Past X days:** past 7 days, past 90 days, custom (past 17 days)
+- **Explicit dates:** "Oct 1 to Dec 3", "Dec 1 to Oct 15"
+- **Comparisons:** "today vs yesterday", "this week vs last week", "Sep to Dec"
+- **With ASIN:** All above examples repeated with `B08XYZ1234`
+
 ## Data Structures
 
 ### AgentState

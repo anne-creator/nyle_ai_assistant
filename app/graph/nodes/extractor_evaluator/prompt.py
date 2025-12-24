@@ -1,7 +1,5 @@
-# EXTRACTOR_EVALUATOR_PROMPT
-# Currently unused - node is in testing mode (does nothing)
+EXTRACTOR_EVALUATOR_PROMPT = """This agent is currently doing nothing. It's a pass-through node.
 
-EXTRACTOR_EVALUATOR_PROMPT = """
-{question}
+Question: {question}
 """
 

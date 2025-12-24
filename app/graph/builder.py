@@ -3,18 +3,15 @@ from langgraph.checkpoint.memory import MemorySaver
 
 from app.models.agentState import AgentState
 from app.graph.nodes import (
+    label_normalizer_node,
     message_analyzer_node,
+    extractor_evaluator_node,
     classify_question_node,
-    extract_dates_metrics_node,
-    extract_dates_comparison_node,
-    extract_dates_asin_node,
+    date_calculator_node,
     metrics_query_handler_node,
     compare_query_handler_node,
     asin_product_handler_node,
-    hardcoded_response_node,
-    label_normalizer_node,
-    date_calculator_node,
-    extractor_evaluator_node
+    hardcoded_response_node
 )
 
 
@@ -37,18 +34,22 @@ def create_chatbot_graph():
     Build the chatbot graph with conditional routing.
     
     Flow:
-    1. message_analyzer: Analyzes message, extracts date labels, ASIN, and classifies question type
-    2. date_calculator: Calculates actual dates from labels
-    3. Route to appropriate handler based on question type
+    1. label_normalizer: Extracts date labels and ASIN (with self-evaluation and retry)
+    2. message_analyzer: Pass-through node (does nothing)
+    3. extractor_evaluator: Pass-through node (does nothing)
+    4. classifier: Classifies question type
+    5. date_calculator: Calculates actual dates from labels
+    6. Route to appropriate handler based on question type
     """
     
     # Create graph
     workflow = StateGraph(AgentState)
     
-    # Add the first node: message analyzer (combines extraction + classification)
+    # Add nodes in order
+    workflow.add_node("label_normalizer", label_normalizer_node)
     workflow.add_node("message_analyzer", message_analyzer_node)
-    
-    # Add date calculator
+    workflow.add_node("extractor_evaluator", extractor_evaluator_node)
+    workflow.add_node("classifier", classify_question_node)
     workflow.add_node("date_calculator", date_calculator_node)
     
     # Add handler nodes
@@ -58,10 +59,13 @@ def create_chatbot_graph():
     workflow.add_node("hardcoded_response", hardcoded_response_node)
     
     # Set entry point
-    workflow.set_entry_point("message_analyzer")
+    workflow.set_entry_point("label_normalizer")
     
-    # Chain: message_analyzer → date_calculator → route to handlers
-    workflow.add_edge("message_analyzer", "date_calculator")
+    # Chain: label_normalizer → message_analyzer → extractor_evaluator → classifier → date_calculator → route to handlers
+    workflow.add_edge("label_normalizer", "message_analyzer")
+    workflow.add_edge("message_analyzer", "extractor_evaluator")
+    workflow.add_edge("extractor_evaluator", "classifier")
+    workflow.add_edge("classifier", "date_calculator")
     
     # Conditional routing after date calculation
     # The keys here must match what route_by_question_type RETURNS (node names)
