@@ -1,6 +1,6 @@
 import logging
 
-from app.models.state import AgentState
+from app.models.agentState import AgentState
 
 logger = logging.getLogger(__name__)
 

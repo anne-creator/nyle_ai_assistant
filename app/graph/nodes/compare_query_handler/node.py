@@ -3,7 +3,7 @@ from langchain.agents import create_agent
 from langchain_core.tools import tool
 import logging
 
-from app.models.state import AgentState
+from app.models.agentState import AgentState
 from app.config import get_settings
 from app.metricsAccessLayer import metrics_api
 from app.graph.nodes.compare_query_handler.prompt import COMPARISON_QUERY_SYSTEM_PROMPT

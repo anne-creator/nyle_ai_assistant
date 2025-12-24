@@ -40,11 +40,19 @@ def get_jwt_token(credentials: HTTPAuthorizationCredentials = Depends(security))
     return credentials.credentials
 
 
+# http call schema
 class ChatRequest(BaseModel):
+    # Existing fields (backward compatible)
     message: str
     sessionId: str
+
     date_start: Optional[str] = None
     date_end: Optional[str] = None
+    type: Optional[str] = None
+    ASIN: Optional[str] = None
+    timespan: Optional[str] = None
+    compare_start_date: Optional[str] = None
+    compare_end_date: Optional[str] = None
 
 
 class ChatResponse(BaseModel):
@@ -62,15 +70,31 @@ async def chatbot(
     
     # Set up request context
     with RequestContext(jwt_token=jwt_token, session_id=request.sessionId):
-        # Build initial state
+        # Build initial state - maps HTTP request to AgentState
         initial_state = {
-            "messages": [],
+            "messages": [("human", request.message)],
             "question": request.message,
-            "date_start": request.date_start or "",
-            "date_end": request.date_end or "",
+            "_http_date_start": request.date_start,
+            "_http_date_end": request.date_end,
+            "_http_asin": request.ASIN,
+            "_date_start_label": None,
+            "_date_end_label": None,
+            "_compare_date_start_label": None,
+            "_compare_date_end_label": None,
+            "_explicit_date_start": None,
+            "_explicit_date_end": None,
+            "_explicit_compare_start": None,
+            "_explicit_compare_end": None,
+            "_custom_days_count": None,
+            "_custom_compare_days_count": None,
+            "date_start": None,
+            "date_end": None,
             "compare_date_start": None,
             "compare_date_end": None,
             "asin": None,
+            "_normalizer_valid": None,
+            "_normalizer_retries": None,
+            "_normalizer_feedback": None,
             "question_type": "",
             "requested_metrics": None,
             "metric_data": None,

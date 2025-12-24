@@ -1,7 +1,7 @@
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
 
-from app.models.state import AgentState
+from app.models.agentState import AgentState
 from app.graph.nodes import (
     classify_question_node,
     extract_dates_metrics_node,
