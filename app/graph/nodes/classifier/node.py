@@ -1,61 +1,37 @@
-from langchain_openai import ChatOpenAI
+import re
 import logging
 
 from app.models.agentState import AgentState
-from app.config import get_settings
-from app.graph.nodes.classifier.prompt import CLASSIFIER_PROMPT
 
 logger = logging.getLogger(__name__)
 
 
 def classify_question_node(state: AgentState) -> AgentState:
     """
-    Classify question into one of 5 types.
+    Classify question based on ASIN presence.
     
-    Types:
-    - metrics_query: Regular metric questions (ACOS, sales, profit, etc.)
-    - compare_query: Comparison questions (August vs September, Q1 vs Q2)
-    - asin_product: ASIN-specific questions (about a specific product)
-    - hardcoded: Questions with hardcoded responses
-    - other: Questions that don't fit into any category
+    Rule:
+    - asin_product: Question contains "ASIN"/"ASINs" OR asin param is not null
+    - metrics_query: Everything else
     """
     
-    logger.info(f"Classifying: '{state['question']}'")
-    
-    settings = get_settings()
-    llm = ChatOpenAI(
-        model=settings.openai_model,
-        temperature=0,
-        api_key=settings.openai_api_key
-    )
-    
-    prompt = CLASSIFIER_PROMPT.format(question=state["question"])
-    
-    response = llm.invoke(prompt)
-    question_type = response.content.strip().lower()
-    
-    # Validate category
-    valid_types = ["metrics_query", "compare_query", "asin_product", "hardcoded", "other"]
-    if question_type not in valid_types:
-        logger.warning(f"Invalid category '{question_type}', defaulting to other")
-        question_type = "other"
-    
-    # ASIN-based classification override
+    question = state.get("question", "")
     asin = state.get("asin")
     http_asin = state.get("_http_asin")
     
-    if asin or http_asin:
-        # Override TO asin_product if ASIN is present
-        original_type = question_type
+    logger.info(f"Classifying: '{question}'")
+    
+    # Check if question contains ASIN/ASINs (case insensitive)
+    has_asin_word = bool(re.search(r'\bASINs?\b', question, re.IGNORECASE))
+    has_asin_param = bool(asin or http_asin)
+    
+    if has_asin_word or has_asin_param:
         question_type = "asin_product"
-        logger.info(f"🔄 Override: Re-classified from '{original_type}' to 'asin_product' due to ASIN presence (asin={asin}, _http_asin={http_asin})")
-    elif question_type == "asin_product":
-        # Override FROM asin_product to metrics_query if NO ASIN is present
+        logger.info(f"Classified as asin_product (has_asin_word={has_asin_word}, has_asin_param={has_asin_param})")
+    else:
         question_type = "metrics_query"
-        logger.info(f"🔄 Override: Re-classified from 'asin_product' to 'metrics_query' because no ASIN present")
+        logger.info(f"Classified as metrics_query (no ASIN detected)")
     
     state["question_type"] = question_type
-    logger.info(f"Question type: {question_type}")
     
     return state
-
