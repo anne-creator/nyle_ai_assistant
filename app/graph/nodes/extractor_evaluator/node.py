@@ -51,8 +51,10 @@ def extractor_evaluator_node(state: AgentState) -> AgentState:
     
     logger.info("🔍 Extractor Evaluator: Starting validation")
     
-    # Get current retry count (initialize to 0 if not present)
-    current_retries = state.get("_normalizer_retries", 0)
+    # Get current retry count (initialize to 0 if not present or None)
+    current_retries = state.get("_normalizer_retries")
+    if current_retries is None:
+        current_retries = 0
     logger.info(f"📊 Current retry attempt: {current_retries + 1} of 3")
     
     # Check if we've exceeded max retries
