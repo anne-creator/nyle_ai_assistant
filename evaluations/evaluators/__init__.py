@@ -14,4 +14,3 @@ __all__ = [
     "date_logic_check",
     "date_extraction_accuracy"
 ]
-

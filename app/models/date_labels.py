@@ -14,6 +14,7 @@ DateLabelLiteral = Literal[
     "this_week",
     "last_week",
     "this_month",
+    "mtd",
     "last_month",
     "this_year",
     "last_year",
@@ -44,11 +45,6 @@ DateLabelLiteral = Literal[
     "november",
     "december",
     
-    # Quarters
-    "q1",
-    "q2",
-    "q3",
-    "q4",
     
     # Special cases
     "explicit_date",  # User gave specific date like "Oct 15"
@@ -63,12 +59,11 @@ def get_all_date_labels() -> list[str]:
     """Return all valid date label values as a list."""
     return [
         "today", "yesterday", "this_week", "last_week",
-        "this_month", "last_month", "this_year", "last_year", "ytd",
+        "this_month", "mtd", "last_month", "this_year", "last_year", "ytd",
         "past_7_days", "past_14_days", "past_30_days", "past_60_days", "past_90_days", "past_180_days",
         "past_days",
         "january", "february", "march", "april", "may", "june",
         "july", "august", "september", "october", "november", "december",
-        "q1", "q2", "q3", "q4",
         "explicit_date", "default"
     ]
 

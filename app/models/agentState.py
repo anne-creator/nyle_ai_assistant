@@ -18,7 +18,7 @@ class AgentState(TypedDict):
     messages: Annotated[List[BaseMessage], add_messages]
     question: str
     
-    # ========== HTTP Request Original Params: updates in Node 1: Label extractor ==========
+    # ========== HTTP Request Original Params: initialized in main.py for each message ==========
     _http_date_start: Optional[str]      # Can be any string from frontend
     _http_date_end: Optional[str]        # Can be any string from frontend
     _http_asin: Optional[str]            # Can be any string from frontend
@@ -30,7 +30,7 @@ class AgentState(TypedDict):
     _compare_date_start_label: Optional[DateLabelLiteral]
     _compare_date_end_label: Optional[DateLabelLiteral]
     
-    # ========== Label Metadata ==========
+    # ========== Node 1 Outputs: Label Metadata ==========
     # For EXPLICIT_DATE label - can be any ISO date string
     _explicit_date_start: Optional[str]
     _explicit_date_end: Optional[str]
@@ -61,7 +61,8 @@ class AgentState(TypedDict):
         "metrics_query",
         "compare_query",
         "asin_product",
-        "hardcoded"
+        "hardcoded",
+        "other"
     ]
     
     # ========== Handler Processing ==========

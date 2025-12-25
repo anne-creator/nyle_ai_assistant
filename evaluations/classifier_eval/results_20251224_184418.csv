@@ -1,0 +1,44 @@
+question,expected_type,predicted_type,correct
+what is todays store overall performance,metrics_query,metrics_query,True
+what is yesterdays roi,metrics_query,metrics_query,True
+show me metrics on roi this week,metrics_query,metrics_query,True
+what is my roi this year,metrics_query,metrics_query,True
+what is the roi of past 7 days,metrics_query,metrics_query,True
+compare my roi from sep to Dec,compare_query,compare_query,True
+what is my today's performance compared to yesterday,compare_query,compare_query,True
+compare my overall performance today and yesterday,compare_query,compare_query,True
+compare my total sales this week and last week,compare_query,compare_query,True
+compare my acos from Oct 1 to 10 and Dec 13 to 15,compare_query,compare_query,True
+what is todays store overall performance for my product B08XYZ1234,asin_product,asin_product,True
+what is yesterdays roi for my product B08XYZ1234,asin_product,asin_product,True
+show me metrics on roi this week for my product B08XYZ1234,asin_product,asin_product,True
+what is my roi this year for my product B08XYZ1234,asin_product,asin_product,True
+compare my roi from sep to Dec for my product B08XYZ1234,asin_product,compare_query,False
+What's my ACOS looking like?,metrics_query,metrics_query,True
+Can you tell me the total sales?,metrics_query,metrics_query,True
+I need to see my profit margins,metrics_query,metrics_query,True
+How much did I spend on ads?,metrics_query,metrics_query,True
+Give me an overview of store performance,metrics_query,metrics_query,True
+What's the revenue for my store?,metrics_query,metrics_query,True
+Show me the conversion rate,metrics_query,metrics_query,True
+How does this month compare to last month?,compare_query,compare_query,True
+What's the difference between Q1 and Q2 sales?,compare_query,compare_query,True
+Compare my advertising costs week over week,compare_query,compare_query,True
+Show me the change from yesterday to today,compare_query,compare_query,True
+How did my metrics shift from last year to this year?,compare_query,compare_query,True
+What's the variance between August and September?,compare_query,compare_query,True
+Show me product B0B5HN65QQ performance,asin_product,asin_product,True
+How is ASIN B0DP55J8ZG performing?,asin_product,asin_product,True
+What are the sales numbers for B0D3VHMR3Z?,asin_product,asin_product,True
+Give me metrics for product B08XYZ1234,asin_product,asin_product,True
+When will ASIN B0B5HN65QQ be out of stock?,asin_product,asin_product,True
+What's the profit on B0DP55J8ZG?,asin_product,asin_product,True
+Show me performance insights,hardcoded,hardcoded,True
+What was the highest performance day?,hardcoded,hardcoded,True
+Give me performance insights,hardcoded,hardcoded,True
+What day had the best performance?,hardcoded,hardcoded,True
+How many units of B08XYZ123 did I sell yesterday/today?,asin_product,asin_product,True
+What are my top 5 selling ASINs this month?,asin_product,asin_product,True
+How are my sales doing today?,asin_product,metrics_query,False
+What is my ad salesfor ASIN: B08XYZ123,asin_product,asin_product,True
+What is my organic sales for ASIN: B08XYZ123,asin_product,asin_product,True

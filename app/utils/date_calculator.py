@@ -1,6 +1,7 @@
 # app/graph/nodes/shared/date_calculator.py
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 import calendar
 from typing import Tuple
 from app.models.date_labels import DateLabelLiteral
@@ -10,7 +11,9 @@ class DateCalculator:
     """Convert pre-defined date labels to ISO format dates."""
     
     def __init__(self, current_date=None):
-        self.current_date = current_date or datetime.now(timezone.utc).date()
+        # Use PST/PDT timezone (America/Los_Angeles)
+        pst_tz = ZoneInfo("America/Los_Angeles")
+        self.current_date = current_date or datetime.now(pst_tz).date()
     
     def calculate(
         self,
@@ -53,6 +56,7 @@ class DateCalculator:
             "this_week": self._this_week,
             "last_week": self._last_week,
             "this_month": self._this_month,
+            "mtd": self._mtd,
             "last_month": self._last_month,
             "this_year": self._this_year,
             "last_year": self._last_year,
@@ -80,11 +84,6 @@ class DateCalculator:
             "november": lambda: self._month_range(11),
             "december": lambda: self._month_range(12),
             
-            # Quarters
-            "q1": lambda: self._quarter_range(1),
-            "q2": lambda: self._quarter_range(2),
-            "q3": lambda: self._quarter_range(3),
-            "q4": lambda: self._quarter_range(4),
             
             # Default
             "default": lambda: self._past_x_days(7),
@@ -116,11 +115,13 @@ class DateCalculator:
         )
     
     def _this_week(self) -> Tuple[str, str]:
+        """This calendar week: Monday to Sunday (full week)"""
         weekday = self.current_date.weekday()
         monday = self.current_date - timedelta(days=weekday)
+        sunday = monday + timedelta(days=6)
         return (
             monday.strftime("%Y-%m-%d"),
-            self.current_date.strftime("%Y-%m-%d")
+            sunday.strftime("%Y-%m-%d")
         )
     
     def _last_week(self) -> Tuple[str, str]:
@@ -133,6 +134,17 @@ class DateCalculator:
         )
     
     def _this_month(self) -> Tuple[str, str]:
+        """This calendar month: First day to last day of month (full month)"""
+        first_day = self.current_date.replace(day=1)
+        last_day = calendar.monthrange(self.current_date.year, self.current_date.month)[1]
+        last_day_date = self.current_date.replace(day=last_day)
+        return (
+            first_day.strftime("%Y-%m-%d"),
+            last_day_date.strftime("%Y-%m-%d")
+        )
+    
+    def _mtd(self) -> Tuple[str, str]:
+        """Month-to-Date: First day of current month to today"""
         first_day = self.current_date.replace(day=1)
         return (
             first_day.strftime("%Y-%m-%d"),
@@ -170,17 +182,3 @@ class DateCalculator:
             f"{year}-{month:02d}-{last_day:02d}"
         )
     
-    def _quarter_range(self, quarter: int) -> Tuple[str, str]:
-        year = self.current_date.year
-        quarter_months = {
-            1: (1, 3),
-            2: (4, 6),
-            3: (7, 9),
-            4: (10, 12)
-        }
-        start_month, end_month = quarter_months[quarter]
-        last_day = calendar.monthrange(year, end_month)[1]
-        return (
-            f"{year}-{start_month:02d}-01",
-            f"{year}-{end_month:02d}-{last_day:02d}"
-        )

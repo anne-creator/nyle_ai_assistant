@@ -49,12 +49,13 @@ class MathMetricRetriever:
         self,
         date_start: str,
         date_end: str,
+        asin: Optional[str] = None,
         saturation: int = 0
     ) -> dict:
         """
         GET /math/ads/executive-summary
         
-        Returns advertising metrics summary.
+        Returns advertising metrics summary, optionally filtered by ASIN.
         """
         endpoint = "/math/ads/executive-summary"
         params = {
@@ -62,6 +63,8 @@ class MathMetricRetriever:
             "date_end": date_end,
             "saturation": saturation
         }
+        if asin:
+            params["asin"] = asin
         
         logger.info(f"Calling {endpoint}")
         return await self.client.get(endpoint, params)
@@ -70,18 +73,21 @@ class MathMetricRetriever:
     async def get_financial_summary(
         self,
         date_start: str,
-        date_end: str
+        date_end: str,
+        asin: Optional[str] = None
     ) -> dict:
         """
         GET /math/cfo/executive-summary
         
-        Returns CFO/financial metrics.
+        Returns CFO/financial metrics, optionally filtered by ASIN.
         """
         endpoint = "/math/cfo/executive-summary"
         params = {
             "date_start": date_start,
             "date_end": date_end
         }
+        if asin:
+            params["asin"] = asin
         
         logger.info(f"Calling {endpoint}")
         return await self.client.get(endpoint, params)
@@ -153,18 +159,21 @@ class MathMetricRetriever:
     async def get_total_metrics_summary(
         self,
         date_start: str,
-        date_end: str
+        date_end: str,
+        asin: Optional[str] = None
     ) -> dict:
         """
         GET /math/total/executive-summary
 
-        Returns total summary metrics across all areas.
+        Returns total summary metrics across all areas, optionally filtered by ASIN.
         """
         endpoint = "/math/total/executive-summary"
         params = {
             "date_start": date_start,
             "date_end": date_end
         }
+        if asin:
+            params["asin"] = asin
 
         logger.info(f"Calling {endpoint}")
         return await self.client.get(endpoint, params)
