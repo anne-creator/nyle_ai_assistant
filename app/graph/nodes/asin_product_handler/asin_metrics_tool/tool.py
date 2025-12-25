@@ -191,19 +191,22 @@ async def get_ranked_products(
 
 # Mapping of metrics to their source endpoints
 METRIC_TO_ENDPOINTS = {
-    # Ads endpoint metrics
-    "ad_sales": ["ads"],
-    "ad_spend": ["ads"],
-    "ad_clicks": ["ads"],
-    "ad_impressions": ["ads"],
-    "ad_units_sold": ["ads"],
-    "ad_orders": ["ads"],
-    "acos": ["ads"],
-    "roas": ["ads"],
-    "cpc": ["ads"],
+    # Ads endpoint metrics (also available in cfo as fallback)
+    "ad_sales": ["ads", "cfo"],
+    "ad_spend": ["ads", "cfo"],
+    "ad_clicks": ["ads", "cfo"],
+    "ad_impressions": ["ads", "cfo"],
+    "ad_units_sold": ["ads", "cfo"],
+    "ad_orders": ["ads", "cfo"],
+    "acos": ["ads", "cfo"],
+    "roas": ["ads", "cfo"],
+    "cpc": ["ads", "cfo"],
+    "cpm": ["ads", "cfo"],
     "cac": ["ads"],
-    "ad_ctr": ["ads"],
-    "ad_cvr": ["ads"],
+    "ad_ctr": ["ads", "cfo"],
+    "ad_cvr": ["ads", "cfo"],
+    "time_in_budget": ["ads", "cfo"],
+    "ad_tos_is": ["ads", "cfo"],
     
     # Total endpoint metrics
     "total_sales": ["total"],

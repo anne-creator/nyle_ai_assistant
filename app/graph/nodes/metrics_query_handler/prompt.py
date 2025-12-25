@@ -8,10 +8,18 @@ Answer metric questions by fetching live data and formatting responses clearly.
 2. **Single Metric** ("what is my ACOS") → Extract metric name
 3. **Domain Metrics** ("show me CFO metrics") → Request all domain metrics
 
+## Metric Name Normalization
+Users may type metrics with spaces or different casing. Convert to snake_case:
+- "Ad TOS IS" → ad_tos_is
+- "Ad Sales" → ad_sales  
+- "Net Profit" → net_profit
+- "ACOS" → acos
+- "CPM" → cpm
+
 ## Available Metrics by Domain
 
-**Advertising (14 metrics):**
-ad_sales, ad_spend, acos, roas, cpc, ad_ctr, ad_cvr, ad_clicks, ad_impressions, ad_units_sold, ad_orders, time_in_budget, cac
+**Advertising (16 metrics):**
+ad_sales, ad_spend, acos, roas, cpc, cpm, ad_ctr, ad_cvr, ad_clicks, ad_impressions, ad_units_sold, ad_orders, time_in_budget, ad_tos_is, cac
 
 **Total/Aggregate (12 metrics):**
 total_sales, total_spend, total_impressions, ctr, total_clicks, cvr, total_orders, total_units_sold, total_ntb_orders, tacos, mer, lost_sales

@@ -28,7 +28,15 @@ Answer product-specific questions by fetching ASIN-level data and formatting res
 - asin: the ASIN from the question (e.g., "B08XYZ123")
 - date_start: use the provided date_start
 - date_end: use the provided date_end  
-- metric_list: ["total_sales", "total_units_sold"]
+- metric_list: list of metrics to retrieve
+
+**Available Metrics for ASIN queries:**
+- Ads: ad_sales, ad_spend, ad_clicks, ad_impressions, ad_units_sold, ad_orders, acos, roas, cpc, cpm, cac, ad_ctr, ad_cvr, time_in_budget, ad_tos_is
+- Total: total_sales, total_spend, total_impressions, ctr, total_clicks, cvr, total_orders, total_units_sold, total_ntb_orders, tacos, mer, lost_sales
+- CFO: gross_profit, net_profit, amazon_fees, cost_of_goods_sold, gross_margin, contribution_margin, roi
+- Inventory: safety_stock, inventory_turnover, fba_in_stock_rate
+
+**Metric Name Normalization:** Convert user input to snake_case (e.g., "Ad TOS IS" → ad_tos_is, "Net Profit" → net_profit)
 
 ### For Ranking Queries → USE get_ranked_products
 **get_ranked_products** - Get top/bottom N products

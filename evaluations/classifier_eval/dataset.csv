@@ -1,4 +1,5 @@
 question,question_type
+"show me my roi",metrics_query
 "what is todays store overall performance",metrics_query
 "what is yesterdays roi",metrics_query
 "show me metrics on roi this week",metrics_query

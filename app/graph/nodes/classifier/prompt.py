@@ -8,6 +8,9 @@ CLASSIFIER_PROMPT = """Classify this Amazon seller question into ONE category:
    - "Show me total sales for last month"
    - "What was my net profit yesterday?"
    - "Give me my store overview"
+   - "Show me Ad TOS IS"
+   - "What is CPM?"
+   - "Ad sales for today"
 
 2. **compare_query** - Questions comparing TWO time periods
    Examples:
