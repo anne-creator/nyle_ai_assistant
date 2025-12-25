@@ -89,7 +89,13 @@ pytest tests/test_nodes.py -v
 
 ### 3-Node Subgraph Evaluation
 
-Evaluate the first 3 nodes of the pipeline together: `label_normalizer → message_analyzer → extractor_evaluator`
+Evaluate the first 3 nodes of the pipeline together with feedback loop: `label_normalizer → message_analyzer → extractor_evaluator`
+
+This tests:
+- **Node 1 (label_normalizer)**: LLM-based extraction of date labels and ASIN
+- **Node 2 (message_analyzer)**: Python-based date calculation from labels
+- **Node 3 (extractor_evaluator)**: LLM-based validation with feedback generation
+- **Retry Loop**: Node 3 can send feedback to Node 1 for re-extraction (max 3 attempts)
 
 **Location:** `evaluations/subgraph_eval/`
 
@@ -118,11 +124,17 @@ evaluations/subgraph_eval/
 | `node1_explicit_dates` | Explicit start/end dates match (YYYY-MM-DD) | 1.0 or 0.0 |
 | `node1_explicit_compare_dates` | Explicit comparison dates match | 1.0 or 0.0 |
 
-**Node 2 (message_analyzer) - Pass-through node:**
-- Currently does nothing (pass-through mode)
+**Node 2 (message_analyzer) - Date Calculator:**
+- Converts date labels to ISO dates (YYYY-MM-DD)
+- Pure Python logic (no LLM)
+- Handles relative dates (today, yesterday, this week, etc.)
+- Handles explicit dates and custom day ranges
 
-**Node 3 (extractor_evaluator) - Pass-through node:**
-- Currently does nothing (pass-through mode)
+**Node 3 (extractor_evaluator) - AI Validation:**
+- Validates Node 1 extraction accuracy
+- Validates Node 2 date calculations
+- Generates actionable feedback for corrections
+- Manages retry loop (max 3 attempts)
 
 **Pass-Through (metadata capture) - 3 Evaluators:**
 
@@ -184,7 +196,7 @@ State object passed through the LangGraph execution:
     "compare_date_start": str, # Comparison start (for compare_query)
     "compare_date_end": str,   # Comparison end (for compare_query)
     "asin": str,              # Product ASIN (for asin_product)
-    "question_type": str,     # metrics_query | compare_query | asin_product | hardcoded
+    "question_type": str,     # metrics_query | compare_query | asin_product | hardcoded | other
     "response": str           # Final response
 }
 ```
@@ -210,12 +222,13 @@ State object passed through the LangGraph execution:
 
 ## Main Features
 
-### 4 Question Types
+### 5 Question Types
 
 1. **metrics_query** - Store-level metrics (ACOS, sales, profit)
 2. **compare_query** - Period comparisons (August vs September)
 3. **asin_product** - Product-specific queries (placeholder)
 4. **hardcoded** - Pre-defined responses
+5. **other** - Unclassifiable questions and general queries
 
 ### Graph Flow
 
@@ -223,23 +236,43 @@ State object passed through the LangGraph execution:
 START
   ↓
 ┌─────────────────────────────────┐
-│   label_normalizer             │  ← FIRST NODE (Active)
+│   label_normalizer (Node 1)    │  ← AI-powered extraction
 │                                 │
-│ - Extracts date labels         │
-│ - Extracts ASIN                 │
-│ - Self-evaluates extraction     │
-│ - Retries up to 3 times if     │
-│   extraction not valid          │
+│ - LLM extracts date labels     │
+│ - Extracts ASIN (10-char code) │
+│ - Validates ASIN with regex     │
+│ - Supports feedback-driven      │
+│   regeneration from Node 3      │
 └────────────┬────────────────────┘
              ↓
 ┌─────────────────────────────────┐
-│   message_analyzer              │  ← PASS-THROUGH (does nothing)
+│   message_analyzer (Node 2)    │  ← Deterministic Python
+│                                 │
+│ - Converts labels to ISO dates │
+│ - Calculates primary period    │
+│ - Calculates comparison period │
+│ - No LLM calls (pure logic)    │
 └────────────┬────────────────────┘
              ↓
 ┌─────────────────────────────────┐
-│   extractor_evaluator           │  ← PASS-THROUGH (does nothing)
+│   extractor_evaluator (Node 3) │  ← AI-powered validation
+│                                 │
+│ - Validates Node 1 extraction  │
+│ - Validates Node 2 dates       │
+│ - Generates feedback if issues │
+│ - Manages retry counter (max 3)│
+│ - Loops back to Node 1 if      │
+│   invalid and retries < 3      │
 └────────────┬────────────────────┘
              ↓
+      [Retry Loop Check]
+             ↓
+    Valid OR max retries?
+         ↓        ↓
+        Yes       No
+         ↓        ↓
+         ↓    (back to Node 1)
+         ↓
 ┌─────────────────────────────────┐
 │   classifier                    │  ← Classifies question type
 │                                 │
@@ -247,20 +280,21 @@ START
 │ - compare_query                 │
 │ - asin_product                  │
 │ - hardcoded                     │
+│ - other                         │
 │                                 │
 │ + Re-classifies if ASIN found   │
 └────────────┬────────────────────┘
              ↓
         Route by type
              ↓
-    ┌────────┴────────┬──────────────┬──────────────┐
-    ↓                 ↓              ↓              ↓
-metrics_query    compare_query  asin_product   hardcoded
-  handler          handler        handler      response
-    ↓                 ↓              ↓              ↓
-    └─────────────────┴──────────────┴──────────────┘
-                      ↓
-                     END
+    ┌────────┴────────┬──────────────┬──────────────┬──────────────┐
+    ↓                 ↓              ↓              ↓              ↓
+metrics_query    compare_query  asin_product   hardcoded       other
+  handler          handler        handler      response       handler
+    ↓                 ↓              ↓              ↓              ↓
+    └─────────────────┴──────────────┴──────────────┴──────────────┘
+                                     ↓
+                                    END
 ```
 
 ## LangSmith
@@ -304,13 +338,14 @@ app/
 └── graph/
     ├── builder.py       # LangGraph construction
     └── nodes/           # Node implementations
-        ├── label_normalizer/      # Extracts date labels and ASIN (with retry)
-        ├── message_analyzer/      # Pass-through node
-        ├── extractor_evaluator/   # Pass-through node
-        ├── classifier/            # Classifies question type
+        ├── label_normalizer/      # Node 1: LLM-based date label & ASIN extraction (with retry support)
+        ├── message_analyzer/      # Node 2: Python date calculator (deterministic, no LLM)
+        ├── extractor_evaluator/   # Node 3: LLM-based validation with feedback generation
+        ├── classifier/            # Classifies question type into 5 categories
         ├── metrics_query_handler/
         ├── compare_query_handler/
         ├── asin_product_handler/
-        └── hardcoded_response/
+        ├── hardcoded_response/
+        └── other_handler/         # Handles unclassifiable questions
 ```
 
