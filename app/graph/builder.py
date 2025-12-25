@@ -10,22 +10,24 @@ from app.graph.nodes import (
     metrics_query_handler_node,
     compare_query_handler_node,
     asin_product_handler_node,
-    hardcoded_response_node
+    hardcoded_response_node,
+    other_handler_node
 )
 
 
 def route_by_question_type(state: AgentState) -> str:
     """Route to appropriate handler based on question type."""
-    question_type = state.get("question_type", "metrics_query")
+    question_type = state.get("question_type", "other")
     
     routing_map = {
         "metrics_query": "metrics_query_handler",
         "compare_query": "compare_query_handler",
         "asin_product": "asin_product_handler",
-        "hardcoded": "hardcoded_response"
+        "hardcoded": "hardcoded_response",
+        "other": "other_handler"
     }
     
-    return routing_map.get(question_type, "metrics_query_handler")
+    return routing_map.get(question_type, "other_handler")
 
 
 def route_after_evaluation(state: AgentState) -> str:
@@ -75,6 +77,7 @@ def create_chatbot_graph():
     workflow.add_node("compare_query_handler", compare_query_handler_node)
     workflow.add_node("asin_product_handler", asin_product_handler_node)
     workflow.add_node("hardcoded_response", hardcoded_response_node)
+    workflow.add_node("other_handler", other_handler_node)
     
     # Set entry point
     workflow.set_entry_point("label_normalizer")
@@ -102,7 +105,8 @@ def create_chatbot_graph():
             "metrics_query_handler": "metrics_query_handler",
             "compare_query_handler": "compare_query_handler",
             "asin_product_handler": "asin_product_handler",
-            "hardcoded_response": "hardcoded_response"
+            "hardcoded_response": "hardcoded_response",
+            "other_handler": "other_handler"
         }
     )
     
@@ -111,6 +115,7 @@ def create_chatbot_graph():
     workflow.add_edge("compare_query_handler", END)
     workflow.add_edge("asin_product_handler", END)
     workflow.add_edge("hardcoded_response", END)
+    workflow.add_edge("other_handler", END)
     
     # Add memory for conversation history
     memory = MemorySaver()

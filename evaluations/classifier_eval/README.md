@@ -1,5 +1,5 @@
 # Classifier Evaluation
-
+It does not go tot eh langSmith, coz it is a simple test case, so we just test it using temrinal, it will print all incorrect predictions.
 This folder contains tools for evaluating the question classifier node.
 
 ## Overview

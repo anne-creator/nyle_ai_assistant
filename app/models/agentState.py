@@ -61,7 +61,8 @@ class AgentState(TypedDict):
         "metrics_query",
         "compare_query",
         "asin_product",
-        "hardcoded"
+        "hardcoded",
+        "other"
     ]
     
     # ========== Handler Processing ==========

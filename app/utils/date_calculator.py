@@ -1,6 +1,7 @@
 # app/graph/nodes/shared/date_calculator.py
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 import calendar
 from typing import Tuple
 from app.models.date_labels import DateLabelLiteral
@@ -10,7 +11,9 @@ class DateCalculator:
     """Convert pre-defined date labels to ISO format dates."""
     
     def __init__(self, current_date=None):
-        self.current_date = current_date or datetime.now(timezone.utc).date()
+        # Use PST/PDT timezone (America/Los_Angeles)
+        pst_tz = ZoneInfo("America/Los_Angeles")
+        self.current_date = current_date or datetime.now(pst_tz).date()
     
     def calculate(
         self,

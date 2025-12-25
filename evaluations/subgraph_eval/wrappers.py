@@ -127,9 +127,10 @@ def node2_wrapped(state: SubgraphState) -> SubgraphState:
             mock_dt.now.return_value.date.return_value = mock_date
             mock_dt.strptime = datetime.strptime
             
-            # Also patch timezone-aware now
-            from datetime import timezone
-            mock_dt.now.return_value = datetime.combine(mock_date, datetime.min.time()).replace(tzinfo=timezone.utc)
+            # Also patch timezone-aware now (using PST timezone)
+            from zoneinfo import ZoneInfo
+            pst_tz = ZoneInfo("America/Los_Angeles")
+            mock_dt.now.return_value = datetime.combine(mock_date, datetime.min.time()).replace(tzinfo=pst_tz)
             
             result = message_analyzer_node(state)
     else:

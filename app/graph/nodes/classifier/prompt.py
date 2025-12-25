@@ -28,6 +28,13 @@ CLASSIFIER_PROMPT = """Classify this Amazon seller question into ONE category:
    - "Show me performance insights"
    - "What was the highest performance day?"
 
+5. **other** - Questions that don't fit into any of the above categories
+   Examples:
+   - "How do I ship my products?"
+   - "What is Amazon FBA?"
+   - "Tell me about your features"
+   - Any unclear or unclassifiable questions
+
 **Question:** {question}
 
 **Return ONLY the category name (no explanation).**"""
