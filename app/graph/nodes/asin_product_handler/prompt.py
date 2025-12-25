@@ -57,6 +57,9 @@ Answer product-specific questions by fetching ASIN-level data and formatting res
 - Currency: 909854.09 → $909,854
 - Units: 150 → 150
 
+## Forecasted Data Rule
+- If the tool response contains "is_forecasted": true, append a NEW LINE at the end of your response with: "This is forecasted data"
+
 {templates}
 """
 

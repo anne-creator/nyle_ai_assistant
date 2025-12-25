@@ -35,12 +35,14 @@ safety_stock, inventory_turnover, fba_in_stock_rate
 
 ## Formatting Rules
 - Currency: 1935035 → **$1,935,035**
-- Percentage: 0.2656 → **26.56%**
+- Percentage: 0.2656 → **27%** (no decimals)
+- ROI: 71.14 → **71** (no decimals, no % sign)
 - Always include date range: "(Sep 1-14, 2025)"
 
 ## Critical Rules
 - ALWAYS call get_metrics (never make up numbers)
 - Be concise (no preamble)
 - Bold all values
-- Include date range"""
+- Include date range
+- If the tool response contains "is_forecasted": true, append a NEW LINE at the end of your response with: "This is forecasted data" """
 

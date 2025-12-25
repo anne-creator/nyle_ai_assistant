@@ -9,6 +9,7 @@ This tool provides:
 import asyncio
 import json
 import logging
+from datetime import date, timedelta
 from typing import List, Dict, Any, Set, Optional
 
 from langchain_core.tools import tool
@@ -18,6 +19,25 @@ from app.metricsAccessLayer import metrics_api
 from app.metricsAccessLayer.products_api import products_api
 
 logger = logging.getLogger(__name__)
+
+
+def is_forecasted_query(date_start: str, date_end: str) -> bool:
+    """
+    Check if query is for forecasted data.
+    
+    Forecasted = single day query for today or yesterday.
+    Returns True if (date_start == date_end == today) or (date_start == date_end == yesterday)
+    """
+    today = date.today()
+    yesterday = today - timedelta(days=1)
+    
+    today_str = today.isoformat()
+    yesterday_str = yesterday.isoformat()
+    
+    is_today = (date_start == today_str and date_end == today_str)
+    is_yesterday = (date_start == yesterday_str and date_end == yesterday_str)
+    
+    return is_today or is_yesterday
 
 
 # ========== Helper: Fetch Units and CVR for an ASIN ==========
@@ -32,7 +52,7 @@ def build_lowercase_key_map(response_data: dict) -> Dict[str, Any]:
     return {normalize_metric_name(k): v for k, v in response_data.items()}
 
 
-async def fetch_asin_units_cvr(asin: str, date_start: str, date_end: str) -> Dict[str, Any]:
+async def fetch_asin_units_cvr(asin: str, date_start: str, date_end: str, timespan: Optional[str] = None) -> Dict[str, Any]:
     """
     Fetch total_units_sold and cvr for a specific ASIN from the total endpoint.
     
@@ -41,7 +61,7 @@ async def fetch_asin_units_cvr(asin: str, date_start: str, date_end: str) -> Dic
     """
     try:
         result = await metrics_api.get_total_metrics_summary(
-            date_start, date_end, asin=asin
+            date_start, date_end, asin=asin, timespan=timespan
         )
         normalized = build_lowercase_key_map(result)
         return {
@@ -106,8 +126,13 @@ async def get_ranked_products(
     """
     logger.info(f"get_ranked_products called: limit={limit}, order_direction={order_direction}, order_by={order_by}")
     
+    # Check if this is a forecasted query (today or yesterday single day)
+    is_forecasted = is_forecasted_query(date_start, date_end)
+    timespan = "day" if is_forecasted else None
+    logger.info(f"Is forecasted query: {is_forecasted}, timespan: {timespan}")
+    
     try:
-        # Step 1: Get ranked products
+        # Step 1: Get ranked products (NO timespan for /v1/products/public)
         api_order_by = ORDER_BY_MAP.get(order_by, "executive_summary.total_sales")
         
         products = await products_api.get_ranked_products(
@@ -119,11 +144,11 @@ async def get_ranked_products(
         
         logger.info(f"Retrieved {len(products)} products")
         
-        # Step 2: For each ASIN, fetch units and CVR in parallel
+        # Step 2: For each ASIN, fetch units and CVR in parallel (with timespan for math API)
         asin_list = [p.get("asin") for p in products if p.get("asin")]
         
         units_cvr_tasks = [
-            fetch_asin_units_cvr(asin, date_start, date_end)
+            fetch_asin_units_cvr(asin, date_start, date_end, timespan=timespan)
             for asin in asin_list
         ]
         units_cvr_results = await asyncio.gather(*units_cvr_tasks)
@@ -148,7 +173,8 @@ async def get_ranked_products(
         return json.dumps({
             "status": "success",
             "products": formatted_products,
-            "count": len(formatted_products)
+            "count": len(formatted_products),
+            "is_forecasted": is_forecasted
         })
         
     except Exception as e:
@@ -156,7 +182,8 @@ async def get_ranked_products(
         return json.dumps({
             "status": "error",
             "message": f"Error retrieving ranked products: {str(e)}",
-            "products": []
+            "products": [],
+            "is_forecasted": False
         })
 
 
@@ -241,6 +268,11 @@ async def get_asin_metrics(
     """
     logger.info(f"get_asin_metrics called: metrics={metric_list}, asin={asin}, dates={date_start} to {date_end}")
     
+    # Check if this is a forecasted query (today or yesterday single day)
+    is_forecasted = is_forecasted_query(date_start, date_end)
+    timespan = "day" if is_forecasted else None
+    logger.info(f"Is forecasted query: {is_forecasted}, timespan: {timespan}")
+    
     try:
         # Step 1: Determine endpoints needed
         endpoints_needed: Set[str] = set()
@@ -258,19 +290,19 @@ async def get_asin_metrics(
         
         if "ads" in endpoints_needed:
             api_tasks["ads"] = metrics_api.get_ads_executive_summary(
-                date_start, date_end, asin=asin
+                date_start, date_end, asin=asin, timespan=timespan
             )
         if "total" in endpoints_needed:
             api_tasks["total"] = metrics_api.get_total_metrics_summary(
-                date_start, date_end, asin=asin
+                date_start, date_end, asin=asin, timespan=timespan
             )
         if "cfo" in endpoints_needed:
             api_tasks["cfo"] = metrics_api.get_financial_summary(
-                date_start, date_end, asin=asin
+                date_start, date_end, asin=asin, timespan=timespan
             )
         if "inventory" in endpoints_needed:
             api_tasks["inventory"] = metrics_api.get_inventory_status(
-                date_start, date_end, asin=asin
+                date_start, date_end, asin=asin, timespan=timespan
             )
         
         # Execute all API calls in parallel
@@ -317,10 +349,11 @@ async def get_asin_metrics(
             "asin": asin,
             "metrics": result_metrics,
             "date_range": f"{date_start} to {date_end}",
-            "message": f"Successfully retrieved {len(result_metrics)} metrics for ASIN {asin}"
+            "message": f"Successfully retrieved {len(result_metrics)} metrics for ASIN {asin}",
+            "is_forecasted": is_forecasted
         }
         
-        logger.info(f"Returning metrics: {result_metrics}")
+        logger.info(f"Returning metrics: {result_metrics}, is_forecasted: {is_forecasted}")
         return json.dumps(output)
         
     except Exception as e:
@@ -329,6 +362,7 @@ async def get_asin_metrics(
             "status": "error",
             "asin": asin,
             "metrics": {},
-            "message": f"Error retrieving metrics: {str(e)}"
+            "message": f"Error retrieving metrics: {str(e)}",
+            "is_forecasted": False
         })
 

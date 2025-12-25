@@ -5,8 +5,8 @@ Templates are stored separately for maintainability and injection into prompts.
 """
 
 # For ranking queries (top/bottom N) - includes Total Sales, Units, CVR
-# Format: ASIN: B08XYZ1234 - Total Sales: $2,400 | Units: 150 | CVR: 8.2%
-RANKING_ITEM_TEMPLATE = """ASIN: {asin} - Total Sales: ${total_sales:,.0f} | Units: {units:,} | CVR: {cvr:.1f}%"""
+# Format: ASIN: B08XYZ1234 - Total Sales: $2,400 | Units: 150 | CVR: 8%
+RANKING_ITEM_TEMPLATE = """ASIN: {asin} - Total Sales: ${total_sales:,.0f} | Units: {units:,} | CVR: {cvr:.0f}%"""
 
 # For single ASIN queries - same format as ranking but for one product
 # Format: For your specific ASIN: B08XYZ123 Total Sales yesterday (Dec 17): $2,400 | Units: 150
@@ -38,9 +38,9 @@ def format_templates_for_prompt() -> str:
 {RANKING_ITEM_TEMPLATE}
 
 Example output for "top 5 selling ASINs":
-ASIN: B08XYZ1234 - Total Sales: $2,400 | Units: 150 | CVR: 8.2%
-ASIN: B09ABC4567 - Total Sales: $1,800 | Units: 90 | CVR: 5.5%
-ASIN: B07DEF7891 - Total Sales: $950 | Units: 200 | CVR: 12.1%
+ASIN: B08XYZ1234 - Total Sales: $2,400 | Units: 150 | CVR: 8%
+ASIN: B09ABC4567 - Total Sales: $1,800 | Units: 90 | CVR: 6%
+ASIN: B07DEF7891 - Total Sales: $950 | Units: 200 | CVR: 12%
 
 ### Single ASIN Query Response:
 {SINGLE_ASIN_TEMPLATE}
