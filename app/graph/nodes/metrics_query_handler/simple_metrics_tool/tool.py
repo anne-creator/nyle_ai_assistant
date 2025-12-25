@@ -40,23 +40,17 @@ METRIC_TO_ENDPOINTS = {
     
     # Total endpoint metrics
     "total_sales": ["total"],
-    "total_units_sold": ["total"],
     "total_spend": ["total"],
-    "total_clicks": ["total"],
-    "total_orders": ["total"],
     "total_impressions": ["total"],
+    "ctr": ["total"],
+    "total_clicks": ["total"],
     "cvr": ["total"],
+    "total_orders": ["total"],
+    "total_units_sold": ["total"],
+    "total_ntb_orders": ["total"],
     "tacos": ["total"],
     "mer": ["total"],
-    "net_proceeds": ["total"],
-    "ctr": ["total"],
-    "cogs": ["total"],
-    "monthly_budget": ["total"],
     "lost_sales": ["total", "cfo"],  # exists in both
-    "roi": ["total", "cfo"],  # exists in both - try total first, fallback to cfo
-    "contribution_margin": ["total", "cfo"],  # exists in both
-    "contribution_profit": ["total", "cfo"],  # exists in both
-    "gross_margin": ["total", "cfo"],  # exists in both
     
     # CFO endpoint metrics
     "available_capital": ["cfo"],
@@ -70,6 +64,10 @@ METRIC_TO_ENDPOINTS = {
     "net_margin": ["cfo"],
     "opex": ["cfo"],
     "ebitda": ["cfo"],
+    "roi": ["cfo"],  # moved from total to cfo only
+    "contribution_margin": ["cfo"],  # moved from total to cfo only
+    "contribution_profit": ["cfo"],  # moved from total to cfo only
+    "gross_margin": ["cfo"],  # moved from total to cfo only
     
     # Organic endpoint metrics
     "organic_impressions": ["organic"],

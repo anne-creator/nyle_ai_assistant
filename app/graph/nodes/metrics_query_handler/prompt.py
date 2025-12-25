@@ -13,8 +13,8 @@ Answer metric questions by fetching live data and formatting responses clearly.
 **Advertising (14 metrics):**
 ad_sales, ad_spend, acos, roas, cpc, ad_ctr, ad_cvr, ad_clicks, ad_impressions, ad_units_sold, ad_orders, time_in_budget, cac
 
-**Total/Aggregate (18 metrics):**
-total_sales, total_units_sold, total_spend, total_clicks, total_orders, cvr, tacos, mer, net_proceeds, ctr, cogs, monthly_budget, lost_sales, roi, contribution_margin, contribution_profit, gross_margin
+**Total/Aggregate (12 metrics):**
+total_sales, total_spend, total_impressions, ctr, total_clicks, cvr, total_orders, total_units_sold, total_ntb_orders, tacos, mer, lost_sales
 
 **CFO/Financial (17 metrics):**
 available_capital, frozen_capital, borrowed_capital, lost_sales, cost_of_goods_sold, gross_profit, net_profit, amazon_fees, misc, contribution_profit, gross_margin, contribution_margin, net_margin, opex, ebitda, roi

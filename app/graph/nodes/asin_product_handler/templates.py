@@ -4,33 +4,28 @@ Response Templates for ASIN Product Handler.
 Templates are stored separately for maintainability and injection into prompts.
 """
 
-# For single ASIN queries with specific product
-SINGLE_ASIN_TEMPLATE = """For ASIN: {asin}
-Total Sales ({date_range}): **${total_sales:,.0f}**"""
-# Future: Add | Units: {units:,} | CVR: {cvr:.1f}% when service available
+# For ranking queries (top/bottom N) - includes Total Sales, Units, CVR
+# Format: ASIN: B08XYZ1234 - Total Sales: $2,400 | Units: 150 | CVR: 8.2%
+RANKING_ITEM_TEMPLATE = """ASIN: {asin} - Total Sales: ${total_sales:,.0f} | Units: {units:,} | CVR: {cvr:.1f}%"""
 
-# For ranking queries (top/bottom N) - uses fields from /amazon/v1/products/own
-RANKING_ITEM_TEMPLATE = """ASIN: {asin} - Total Sales: **${total_sales:,.0f}** | Net Profit: **${net_profit:,.0f}** | ROI: **{roi:.1f}%**"""
-# Future: Add Units/CVR when service available
-
-# For simple metric queries
-SIMPLE_METRIC_TEMPLATE = """Your {metric_name} is **{formatted_value}** ({date_range}) for ASIN: {asin}"""
+# For single ASIN queries - same format as ranking but for one product
+# Format: For your specific ASIN: B08XYZ123 Total Sales yesterday (Dec 17): $2,400 | Units: 150
+SINGLE_ASIN_TEMPLATE = """For your specific ASIN: {asin} Total Sales ({date_range}): ${total_sales:,.0f} | Units: {units:,}"""
 
 # Available order_by fields for ranking (from executive_summary)
 RANKABLE_FIELDS = [
-    "executive_summary.total_sales",
-    "executive_summary.net_profit",
-    "executive_summary.gross_profit",
-    "executive_summary.gross_margin",
-    "executive_summary.contribution_margin",
-    "executive_summary.roi",
+    "total_sales",
+    "net_profit",
+    "gross_profit",
+    "gross_margin",
+    "contribution_margin",
+    "roi",
 ]
 
 # Template selector mapping
 TEMPLATES = {
-    "single_asin": SINGLE_ASIN_TEMPLATE,
     "ranking_item": RANKING_ITEM_TEMPLATE,
-    "simple_metric": SIMPLE_METRIC_TEMPLATE,
+    "single_asin": SINGLE_ASIN_TEMPLATE,
 }
 
 
@@ -39,13 +34,18 @@ def format_templates_for_prompt() -> str:
     return f"""
 ## Response Templates
 
-### Single ASIN Response:
-{SINGLE_ASIN_TEMPLATE}
-
 ### Ranking Query Response (per item):
 {RANKING_ITEM_TEMPLATE}
 
-### Simple Metric Response:
-{SIMPLE_METRIC_TEMPLATE}
+Example output for "top 5 selling ASINs":
+ASIN: B08XYZ1234 - Total Sales: $2,400 | Units: 150 | CVR: 8.2%
+ASIN: B09ABC4567 - Total Sales: $1,800 | Units: 90 | CVR: 5.5%
+ASIN: B07DEF7891 - Total Sales: $950 | Units: 200 | CVR: 12.1%
+
+### Single ASIN Query Response:
+{SINGLE_ASIN_TEMPLATE}
+
+Example output for "How many units of B08XYZ123 did I sell yesterday":
+For your specific ASIN: B08XYZ123 Total Sales (Dec 17): $2,400 | Units: 150
 """
 
