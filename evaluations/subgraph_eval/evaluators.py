@@ -382,3 +382,4 @@ def pipeline_accuracy(run: Run, example: Example) -> Dict[str, Any]:
         "comment": f"Failed: {failed}" if failed else "All passed"
     }
 
+

@@ -17,13 +17,13 @@ You receive:
 ## Available Tools (API Endpoints)
 
 **1. GET_ads_executive_summary**
-Returns: ad_sales, ad_spend, ad_clicks, ad_impressions, ad_units_sold, ad_orders, acos, roas, cpc, cac, ad_ctr, ad_cvr, time_in_budget
+Returns: ad_sales, ad_spend, ad_clicks, ad_impressions, ad_units_sold, ad_orders, acos, roas, cpc, cpm, cac, ad_ctr, ad_cvr, time_in_budget, ad_tos_is
 
 **2. GET_total_executive_summary**  
-Returns: total_sales, total_units_sold, total_spend, total_clicks, total_orders, total_impressions, cvr, tacos, mer, net_proceeds, ctr, cogs, monthly_budget, lost_sales, roi, contribution_margin, contribution_profit, gross_margin
+Returns: total_sales, total_spend, total_impressions, ctr, total_clicks, cvr, total_orders, total_units_sold, total_ntb_orders, tacos, mer, lost_sales
 
 **3. GET_cfo_executive_summary**
-Returns: available_capital, frozen_capital, borrowed_capital, lost_sales, cost_of_goods_sold, gross_profit, net_profit, amazon_fees, misc, contribution_profit, gross_margin, contribution_margin, net_margin, opex, ebitda, roi
+Returns: ad_sales, ad_spend, ad_impressions, ad_ctr, ad_clicks, ad_cvr, ad_orders, ad_units_sold, acos, roas, cpc, cpm, time_in_budget, ad_tos_is, available_capital, frozen_capital, borrowed_capital, lost_sales, cost_of_goods_sold, gross_profit, net_profit, amazon_fees, misc, contribution_profit, gross_margin, contribution_margin, net_margin, opex, ebitda, roi
 
 **4. GET_organic_executive_summary**
 Returns: organic_impressions, organic_clicks, organic_orders, organic_units_sold, organic_cvr, organic_ctr, organic_sales, organic_lost_sales, organic_add_to_cart (+ all _what_if variants)

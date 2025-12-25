@@ -59,15 +59,19 @@ async def asin_product_handler_node(state: AgentState) -> AgentState:
     
     logger.info("Running ASIN product query agent...")
     
-    # Build the message with ASIN info if available
+    # Build the message with context
     asin_info = f"ASIN: {state['asin']}" if state.get('asin') else "ASIN: Not specified (use get_ranked_products for ranking queries)"
+    date_start = state['date_start']
+    date_end = state['date_end']
     
     result = await agent.ainvoke(
         {"messages": [(
             "human",
             f"Question: {state['question']}\n"
             f"{asin_info}\n"
-            f"Date: {state['date_start']} to {state['date_end']}"
+            f"date_start: {date_start}\n"
+            f"date_end: {date_end}\n"
+            f"\nUse these exact date values when calling tools."
         )]},
         config={"recursion_limit": 10}
     )

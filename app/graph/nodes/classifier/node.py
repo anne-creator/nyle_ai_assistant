@@ -40,13 +40,19 @@ def classify_question_node(state: AgentState) -> AgentState:
         logger.warning(f"Invalid category '{question_type}', defaulting to other")
         question_type = "other"
     
-    # Always classify as asin_product if ASIN params are present
+    # ASIN-based classification override
     asin = state.get("asin")
     http_asin = state.get("_http_asin")
+    
     if asin or http_asin:
+        # Override TO asin_product if ASIN is present
         original_type = question_type
         question_type = "asin_product"
         logger.info(f"🔄 Override: Re-classified from '{original_type}' to 'asin_product' due to ASIN presence (asin={asin}, _http_asin={http_asin})")
+    elif question_type == "asin_product":
+        # Override FROM asin_product to metrics_query if NO ASIN is present
+        question_type = "metrics_query"
+        logger.info(f"🔄 Override: Re-classified from 'asin_product' to 'metrics_query' because no ASIN present")
     
     state["question_type"] = question_type
     logger.info(f"Question type: {question_type}")

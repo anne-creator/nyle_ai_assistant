@@ -55,7 +55,7 @@ The agent has access to 6 tools, each calling a different Nyle backend API:
 ### 2. GET_total_executive_summary
 **Endpoint**: `/math/total/executive-summary`
 
-**Returns**: total_sales, total_units_sold, total_spend, total_clicks, total_orders, total_impressions, cvr, tacos, mer, net_proceeds, ctr, cogs, monthly_budget, lost_sales, roi, contribution_margin, contribution_profit, gross_margin
+**Returns**: total_sales, total_spend, total_impressions, ctr, total_clicks, cvr, total_orders, total_units_sold, total_ntb_orders, tacos, mer, lost_sales
 
 ### 3. GET_cfo_executive_summary
 **Endpoint**: `/math/cfo/executive-summary`

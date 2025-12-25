@@ -50,7 +50,8 @@ class MathMetricRetriever:
         date_start: str,
         date_end: str,
         asin: Optional[str] = None,
-        saturation: int = 0
+        saturation: int = 0,
+        timespan: Optional[str] = None
     ) -> dict:
         """
         GET /math/ads/executive-summary
@@ -65,6 +66,8 @@ class MathMetricRetriever:
         }
         if asin:
             params["asin"] = asin
+        if timespan:
+            params["timespan"] = timespan
         
         logger.info(f"Calling {endpoint}")
         return await self.client.get(endpoint, params)
@@ -74,7 +77,8 @@ class MathMetricRetriever:
         self,
         date_start: str,
         date_end: str,
-        asin: Optional[str] = None
+        asin: Optional[str] = None,
+        timespan: Optional[str] = None
     ) -> dict:
         """
         GET /math/cfo/executive-summary
@@ -88,6 +92,8 @@ class MathMetricRetriever:
         }
         if asin:
             params["asin"] = asin
+        if timespan:
+            params["timespan"] = timespan
         
         logger.info(f"Calling {endpoint}")
         return await self.client.get(endpoint, params)
@@ -96,7 +102,8 @@ class MathMetricRetriever:
     async def get_organic_metrics(
         self,
         date_start: str,
-        date_end: str
+        date_end: str,
+        timespan: Optional[str] = None
     ) -> dict:
         """
         GET /math/organic/executive-summary
@@ -108,6 +115,8 @@ class MathMetricRetriever:
             "date_start": date_start,
             "date_end": date_end
         }
+        if timespan:
+            params["timespan"] = timespan
         
         logger.info(f"Calling {endpoint}")
         return await self.client.get(endpoint, params)
@@ -117,7 +126,8 @@ class MathMetricRetriever:
         self,
         date_start: str,
         date_end: str,
-        asin: Optional[str] = None
+        asin: Optional[str] = None,
+        timespan: Optional[str] = None
     ) -> dict:
         """
         GET /math/inventory/metrics/executive-summary
@@ -131,6 +141,8 @@ class MathMetricRetriever:
         }
         if asin:
             params["asin"] = asin
+        if timespan:
+            params["timespan"] = timespan
         
         logger.info(f"Calling {endpoint}")
         return await self.client.get(endpoint, params)
@@ -139,7 +151,8 @@ class MathMetricRetriever:
     async def get_attribution_metrics(
         self,
         date_start: str,
-        date_end: str
+        date_end: str,
+        timespan: Optional[str] = None
     ) -> dict:
         """
         GET /math/attribution/metrics
@@ -151,6 +164,8 @@ class MathMetricRetriever:
             "date_start": date_start,
             "date_end": date_end
         }
+        if timespan:
+            params["timespan"] = timespan
         
         logger.info(f"Calling {endpoint}")
         return await self.client.get(endpoint, params)
@@ -160,7 +175,8 @@ class MathMetricRetriever:
         self,
         date_start: str,
         date_end: str,
-        asin: Optional[str] = None
+        asin: Optional[str] = None,
+        timespan: Optional[str] = None
     ) -> dict:
         """
         GET /math/total/executive-summary
@@ -174,6 +190,8 @@ class MathMetricRetriever:
         }
         if asin:
             params["asin"] = asin
+        if timespan:
+            params["timespan"] = timespan
 
         logger.info(f"Calling {endpoint}")
         return await self.client.get(endpoint, params)
