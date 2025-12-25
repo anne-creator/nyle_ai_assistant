@@ -30,37 +30,16 @@ def route_by_question_type(state: AgentState) -> str:
     return routing_map.get(question_type, "other_handler")
 
 
-def route_after_evaluation(state: AgentState) -> str:
-    """
-    Route after Node 3 evaluation.
-    
-    Returns:
-        - "classifier": If extraction is valid OR max retries reached (continue pipeline)
-        - "label_normalizer": If extraction is invalid AND retries < 3 (retry loop)
-    """
-    is_valid = state.get("_normalizer_valid", False)
-    retries = state.get("_normalizer_retries", 0)
-    
-    # Continue forward if valid OR max retries exceeded
-    if is_valid or retries >= 3:
-        return "classifier"
-    else:
-        # Retry: go back to label_normalizer
-        return "label_normalizer"
-
-
 def create_chatbot_graph():
     """
     Build the chatbot graph with conditional routing.
     
     Flow:
-    1. label_normalizer: Extracts date labels and ASIN (supports retry with feedback)
+    1. label_normalizer: Extracts date labels and ASIN
     2. message_analyzer: Converts labels to ISO dates (deterministic Python)
-    3. extractor_evaluator: AI-powered validation with feedback generation
-    4. [CONDITIONAL] If invalid and retries < 3: loop back to label_normalizer
-    5. [CONDITIONAL] If valid or retries >= 3: continue to classifier
-    6. classifier: Classifies question type
-    7. Route to appropriate handler based on question type
+    3. extractor_evaluator: Pass-through validation (retries disabled)
+    4. classifier: Classifies question type
+    5. Route to appropriate handler based on question type
     """
     
     # Create graph
@@ -86,15 +65,8 @@ def create_chatbot_graph():
     workflow.add_edge("label_normalizer", "message_analyzer")
     workflow.add_edge("message_analyzer", "extractor_evaluator")
     
-    # Conditional routing after evaluation: retry loop or continue
-    workflow.add_conditional_edges(
-        "extractor_evaluator",
-        route_after_evaluation,
-        {
-            "classifier": "classifier",
-            "label_normalizer": "label_normalizer"  # Retry loop
-        }
-    )
+    # Route after evaluation: always continue forward (no retry loop)
+    workflow.add_edge("extractor_evaluator", "classifier")
     
     # Conditional routing after classification
     # The keys here must match what route_by_question_type RETURNS (node names)
