@@ -7,6 +7,7 @@ from app.models.agentState import AgentState
 from app.config import get_settings
 from app.metricsAccessLayer import metrics_api
 from app.graph.nodes.compare_query_handler.prompt import COMPARISON_QUERY_SYSTEM_PROMPT
+from app.context import set_jwt_token_for_task
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,9 @@ async def compare_query_handler_node(state: AgentState) -> AgentState:
     """
     global _current_state
     _current_state = state
+    
+    # Ensure JWT token is available for async tasks
+    set_jwt_token_for_task(state["_jwt_token"])
     
     logger.info(f"Processing compare_query: '{state['question']}'")
     

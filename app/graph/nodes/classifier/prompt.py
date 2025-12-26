@@ -4,6 +4,7 @@ HARDCODED_QUESTIONS = {
     "give me performance insights",
     "what was the highest performance day?",
     "what day had the best performance?",
+    "can you compare my store performance in august over august to september?",
 }
 
 # Keywords that indicate comparison queries

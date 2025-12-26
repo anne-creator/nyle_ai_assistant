@@ -68,10 +68,11 @@ async def chatbot(
     
     logger.info(f"Received question: {request.message}")
     
-    # Set up request context
-    with RequestContext(jwt_token=jwt_token, session_id=request.sessionId):
+    # Set up request context using async context manager
+    async with RequestContext(jwt_token=jwt_token, session_id=request.sessionId):
         # Build initial state - maps HTTP request to AgentState
         initial_state = {
+            "_jwt_token": jwt_token,  # Store JWT in state for reliable access
             "messages": [("human", request.message)],
             "question": request.message,
             "_http_date_start": request.date_start,
@@ -105,7 +106,12 @@ async def chatbot(
         }
         
         # Run graph
-        config = {"configurable": {"thread_id": request.sessionId}}
+        config = {
+            "configurable": {
+                "thread_id": request.sessionId,
+                "jwt_token": jwt_token  # Pass JWT through config for reliable access
+            }
+        }
         result = await graph.ainvoke(initial_state, config)
         
         logger.info(f"Generated response")

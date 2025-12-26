@@ -14,6 +14,9 @@ class AgentState(TypedDict):
     This prevents typos and enforces valid values.
     """
     
+    # ========== Authentication ==========
+    _jwt_token: str  # JWT token for API authentication
+    
     # ========== Core Conversation ==========
     messages: Annotated[List[BaseMessage], add_messages]
     question: str
