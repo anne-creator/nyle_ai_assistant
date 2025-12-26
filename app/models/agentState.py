@@ -21,6 +21,8 @@ class AgentState(TypedDict):
     # ========== HTTP Request Original Params: initialized in main.py for each message ==========
     _http_date_start: Optional[str]      # Can be any string from frontend
     _http_date_end: Optional[str]        # Can be any string from frontend
+    _http_compare_date_start: Optional[str]  # Can be any string from frontend
+    _http_compare_date_end: Optional[str]    # Can be any string from frontend
     _http_asin: Optional[str]            # Can be any string from frontend
     
     # ========== Node 1 Outputs: Extracted Labels ==========
@@ -62,7 +64,7 @@ class AgentState(TypedDict):
         "compare_query",
         "asin_product",
         "hardcoded",
-        "other"
+        "other_query"
     ]
     
     # ========== Handler Processing ==========

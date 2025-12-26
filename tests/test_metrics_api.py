@@ -1,7 +1,7 @@
 """
 Test for Metrics Access Layer - Using MathMetricRetriever Methods
 
-This test calls all 6 methods from math_metric_retriver.py to get real data
+This test calls all 6 methods from metrics_api.py to get real data
 from the Nyle math backend.
 
 Configuration: Fill in JWT_TOKEN, ENVIRONMENT, and date range below.
@@ -36,8 +36,8 @@ DATE_END = "2025-10-31"
 # Set environment variable before importing app modules
 os.environ["ENVIRONMENT"] = ENVIRONMENT
 
-# Import the singleton metrics_api instance from math_metric_retriver.py
-from app.metricsAccessLayer.math_metric_retriver import metrics_api
+# Import the singleton metrics_api instance from metrics_api.py
+from app.metricsAccessLayer.metrics_api import metrics_api
 from app.context import RequestContext
 from app.config import get_settings
 
@@ -71,11 +71,11 @@ async def test_method(method_name: str, method_call, api_name: str):
 
 
 async def test_all_apis():
-    """Test all 6 methods from math_metric_retriver.py"""
-    
+    """Test all 6 methods from metrics_api.py"""
+
     print("\n" + "🚀 " + "="*56 + " 🚀")
     print("   TESTING MATH METRIC RETRIEVER")
-    print("   Calling 6 Methods from math_metric_retriver.py")
+    print("   Calling 6 Methods from metrics_api.py")
     print("🚀 " + "="*56 + " 🚀")
     
     settings = get_settings()

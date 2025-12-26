@@ -53,16 +53,29 @@ def run_classifier_eval():
         question = test_case['question']
         expected_type = test_case['question_type']
         
+        # Extract state presets from dataset
+        preset_asin = test_case.get('asin', '').strip() or None
+        preset_http_asin = test_case.get('_http_asin', '').strip() or None
+        preset_compare_date_start = test_case.get('compare_date_start', '').strip() or None
+
         logger.info(f"\n[{i}/{total}] Testing: {question}")
         logger.info(f"Expected: {expected_type}")
+        if preset_asin:
+            logger.info(f"State preset: asin={preset_asin}")
+        if preset_http_asin:
+            logger.info(f"State preset: _http_asin={preset_http_asin}")
+        if preset_compare_date_start:
+            logger.info(f"State preset: compare_date_start={preset_compare_date_start}")
         
-        # Create minimal state
+        # Create minimal state with presets injected
         state = AgentState(
             messages=[],
             question=question,
             _http_date_start=None,
             _http_date_end=None,
-            _http_asin=None,
+            _http_compare_date_start=None,
+            _http_compare_date_end=None,
+            _http_asin=preset_http_asin,
             _date_start_label=None,
             _date_end_label=None,
             _compare_date_start_label=None,
@@ -75,9 +88,9 @@ def run_classifier_eval():
             _custom_compare_days_count=None,
             date_start="",
             date_end="",
-            compare_date_start=None,
+            compare_date_start=preset_compare_date_start,
             compare_date_end=None,
-            asin=None,
+            asin=preset_asin,
             _normalizer_valid=None,
             _normalizer_retries=None,
             _normalizer_feedback=None,
@@ -87,12 +100,6 @@ def run_classifier_eval():
             comparison_metric_data=None,
             response=""
         )
-        
-        # Check if ASIN is in question and set it
-        import re
-        asin_match = re.search(r'B[0-9A-Z]{9}', question)
-        if asin_match:
-            state['asin'] = asin_match.group(0)
         
         # Run classifier
         try:
@@ -109,7 +116,10 @@ def run_classifier_eval():
                 'question': question,
                 'expected_type': expected_type,
                 'predicted_type': predicted_type,
-                'correct': is_correct
+                'correct': is_correct,
+                'preset_asin': preset_asin or '',
+                'preset_http_asin': preset_http_asin or '',
+                'preset_compare_date_start': preset_compare_date_start or ''
             })
             
         except Exception as e:
@@ -118,7 +128,10 @@ def run_classifier_eval():
                 'question': question,
                 'expected_type': expected_type,
                 'predicted_type': 'ERROR',
-                'correct': False
+                'correct': False,
+                'preset_asin': preset_asin or '',
+                'preset_http_asin': preset_http_asin or '',
+                'preset_compare_date_start': preset_compare_date_start or ''
             })
     
     # Calculate accuracy
@@ -150,7 +163,8 @@ def run_classifier_eval():
     output_path = Path(__file__).parent / f"results_{timestamp}.csv"
     
     with open(output_path, 'w', newline='', encoding='utf-8') as f:
-        fieldnames = ['question', 'expected_type', 'predicted_type', 'correct']
+        fieldnames = ['question', 'expected_type', 'predicted_type', 'correct', 
+                      'preset_asin', 'preset_http_asin', 'preset_compare_date_start']
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(results)

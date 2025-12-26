@@ -10,7 +10,7 @@ Usage:
     products = await products_api.get_ranked_products(limit=5, order_direction=1)
 """
 
-from app.metricsAccessLayer.math_metric_retriver import MathMetricRetriever, metrics_api
+from app.metricsAccessLayer.metrics_api import MathMetricRetriever, metrics_api
 from app.metricsAccessLayer.products_api import ProductsAPIClient, products_api
 from app.metricsAccessLayer.BaseAPIClient import BaseAPIClient
 

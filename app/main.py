@@ -76,6 +76,8 @@ async def chatbot(
             "question": request.message,
             "_http_date_start": request.date_start,
             "_http_date_end": request.date_end,
+            "_http_compare_date_start": request.compare_start_date,
+            "_http_compare_date_end": request.compare_end_date,
             "_http_asin": request.ASIN,
             "_date_start_label": None,
             "_date_end_label": None,
