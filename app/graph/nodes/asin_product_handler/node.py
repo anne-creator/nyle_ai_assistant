@@ -19,6 +19,7 @@ from app.graph.nodes.asin_product_handler.asin_metrics_tool import (
     get_ranked_products,
     get_asin_metrics,
 )
+from app.context import set_jwt_token_for_task
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +33,9 @@ async def asin_product_handler_node(state: AgentState) -> AgentState:
     - "What are my top 5 selling ASINs?"
     - "Which product has the highest ROI?"
     """
+    
+    # Ensure JWT token is available for async tasks
+    set_jwt_token_for_task(state["_jwt_token"])
     
     logger.info(f"Processing asin_product query: '{state['question']}'")
     logger.info(f"ASIN: {state.get('asin', 'N/A')}")

@@ -1,45 +1,66 @@
 import logging
+import random
 from langchain_openai import ChatOpenAI
 
 from app.models.agentState import AgentState
 from app.config import get_settings
+from .prompt import (
+    SUB_CLASSIFY_PROMPT,
+    GREETING_RESPONSES,
+    ABOUT_SERVICE_RESPONSE,
+    KNOWLEDGE_ANSWER_PROMPT
+)
 
 logger = logging.getLogger(__name__)
 
 
 def other_handler_node(state: AgentState) -> AgentState:
     """
-    Handler for questions that don't fit into other categories.
-    
-    Handles:
-    - General questions
-    - Unclassifiable queries
-    - Fallback responses
+    Handler for questions classified as 'other_query'.
+
+    Handles three types:
+    1. Greetings - Simple welcome messages
+    2. About service - What Nyle/chatbot does
+    3. Knowledge questions - eCommerce terminology definitions
     """
-    
-    logger.info(f"Processing other/unclassified query: '{state['question']}'")
-    
+
+    logger.info(f"Processing other query: '{state['question']}'")
+
     settings = get_settings()
     llm = ChatOpenAI(
         model=settings.openai_model,
-        temperature=0.7,
+        temperature=0.3,
         api_key=settings.openai_api_key
     )
-    
-    # Generate a helpful response for unclassified questions
-    prompt = f"""You are a helpful assistant for an Amazon seller. The user has asked a question that doesn't fit into our standard categories (metrics, comparisons, product-specific, or hardcoded responses).
 
-Question: {state['question']}
+    # Sub-classify the query type
+    classify_prompt = SUB_CLASSIFY_PROMPT.format(question=state['question'])
+    classification = llm.invoke(classify_prompt)
+    query_type = classification.content.strip().lower()
 
-Provide a helpful, professional response. If the question is unclear, ask for clarification. If it's outside your scope, politely explain what types of questions you can help with (metrics queries, comparisons, product information, etc.).
+    logger.info(f"Sub-classified as: {query_type}")
 
-Keep your response concise and friendly."""
-    
-    response = llm.invoke(prompt)
-    state["response"] = response.content.strip()
-    
-    logger.info("Returned other/fallback response")
-    
+    # Route based on sub-type
+    if query_type == "greeting":
+        state["response"] = random.choice(GREETING_RESPONSES)
+        logger.info("Returned greeting response")
+
+    elif query_type == "about_service":
+        state["response"] = ABOUT_SERVICE_RESPONSE
+        logger.info("Returned about service response")
+
+    elif query_type == "knowledge":
+        # Use web search for knowledge questions
+        knowledge_prompt = KNOWLEDGE_ANSWER_PROMPT.format(question=state['question'])
+        response = llm.invoke(knowledge_prompt)
+        state["response"] = response.content.strip()
+        logger.info("Returned knowledge response")
+
+    else:
+        # Fallback for unrecognized sub-types
+        state["response"] = random.choice(GREETING_RESPONSES)
+        logger.warning(f"Unrecognized sub-type '{query_type}', using greeting fallback")
+
     return state
 
 

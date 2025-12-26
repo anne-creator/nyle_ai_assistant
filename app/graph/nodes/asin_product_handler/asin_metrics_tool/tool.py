@@ -47,6 +47,20 @@ def normalize_metric_name(name: str) -> str:
     return name.lower().replace(" ", "_").replace("-", "_")
 
 
+def truncate_decimals(value: Any) -> Any:
+    """
+    Truncate decimal numbers to integers (cut decimals, don't round).
+    Handles floats, ints, dicts, and lists recursively.
+    """
+    if isinstance(value, float):
+        return int(value)
+    elif isinstance(value, dict):
+        return {k: truncate_decimals(v) for k, v in value.items()}
+    elif isinstance(value, list):
+        return [truncate_decimals(v) for v in value]
+    return value
+
+
 def build_lowercase_key_map(response_data: dict) -> Dict[str, Any]:
     """Build a lowercase key -> value mapping from API response."""
     return {normalize_metric_name(k): v for k, v in response_data.items()}
@@ -102,9 +116,9 @@ class RankedProductsInput(BaseModel):
 async def get_ranked_products(
     limit: int,
     order_direction: int,
-    order_by: str,
     date_start: str,
-    date_end: str
+    date_end: str,
+    order_by: str = "total_sales"
 ) -> str:
     """
     Get top/bottom N products sorted by a metric, including units sold and CVR.
@@ -169,6 +183,9 @@ async def get_ranked_products(
                 "units": units_cvr["units"],
                 "cvr": units_cvr["cvr"],
             })
+        
+        # Truncate decimals before returning
+        formatted_products = truncate_decimals(formatted_products)
         
         return json.dumps({
             "status": "success",
@@ -346,7 +363,8 @@ async def get_asin_metrics(
             if not found:
                 logger.warning(f"Metric {metric} not found in any endpoint")
         
-        # Step 4: Return structured JSON
+        # Step 4: Truncate decimals and return structured JSON
+        result_metrics = truncate_decimals(result_metrics)
         output = {
             "status": "success",
             "asin": asin,

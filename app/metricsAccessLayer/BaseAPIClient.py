@@ -25,6 +25,10 @@ class BaseAPIClient:
     def _get_headers(self) -> dict:
         """Get headers with JWT from context."""
         jwt_token = get_jwt_token()
+        logger.debug(f"JWT token retrieved: {jwt_token[:20] if jwt_token else 'None'}...")
+        if not jwt_token:
+            logger.error("No JWT token available in context!")
+            raise RuntimeError("No JWT token available in request context")
         return {
             "Authorization": f"Bearer {jwt_token}",
             "Content-Type": "application/json"

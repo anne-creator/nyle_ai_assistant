@@ -17,14 +17,14 @@ from app.graph.nodes import (
 
 def route_by_question_type(state: AgentState) -> str:
     """Route to appropriate handler based on question type."""
-    question_type = state.get("question_type", "other")
+    question_type = state.get("question_type", "other_query")
     
     routing_map = {
         "metrics_query": "metrics_query_handler",
         "compare_query": "compare_query_handler",
         "asin_product": "asin_product_handler",
         "hardcoded": "hardcoded_response",
-        "other": "other_handler"
+        "other_query": "other_handler"
     }
     
     return routing_map.get(question_type, "other_handler")

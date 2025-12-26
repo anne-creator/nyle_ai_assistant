@@ -129,9 +129,60 @@ def normalize_metric_name(name: str) -> str:
     return name.lower().replace(" ", "_").replace("-", "_")
 
 
-def build_lowercase_key_map(response_data: dict) -> Dict[str, Any]:
-    """Build a lowercase key -> value mapping from API response."""
-    return {normalize_metric_name(k): v for k, v in response_data.items()}
+def truncate_decimals(value: Any) -> Any:
+    """
+    Truncate decimal numbers to integers (cut decimals, don't round).
+    Handles floats, ints, dicts, and lists recursively.
+    """
+    if isinstance(value, float):
+        return int(value)
+    elif isinstance(value, dict):
+        return {k: truncate_decimals(v) for k, v in value.items()}
+    elif isinstance(value, list):
+        return [truncate_decimals(v) for v in value]
+    return value
+
+
+def build_lowercase_key_map(response_data) -> Dict[str, Any]:
+    """
+    Build a lowercase key -> value mapping from API response.
+    Handles multiple response formats:
+    - {"data": [{"value": {...metrics...}}]} (timespan=day format)
+    - [{"metric": value}] (plain list)
+    - {"data": {...metrics...}} (nested dict)
+    - {"metric": value} (flat dict)
+    """
+    # Handle list response directly
+    if isinstance(response_data, list):
+        if len(response_data) > 0 and isinstance(response_data[0], dict):
+            first_item = response_data[0]
+            # Check if metrics are in 'value' key
+            if 'value' in first_item and isinstance(first_item['value'], dict):
+                return {normalize_metric_name(k): v for k, v in first_item['value'].items()}
+            return {normalize_metric_name(k): v for k, v in first_item.items()}
+        return {}
+    
+    # Handle dict response
+    if isinstance(response_data, dict):
+        # Check if 'data' is a list (timespan=day format: {"data": [{"value": {...}}]})
+        if 'data' in response_data and isinstance(response_data['data'], list):
+            data_list = response_data['data']
+            if len(data_list) > 0 and isinstance(data_list[0], dict):
+                first_item = data_list[0]
+                # Check if metrics are in 'value' key
+                if 'value' in first_item and isinstance(first_item['value'], dict):
+                    return {normalize_metric_name(k): v for k, v in first_item['value'].items()}
+                return {normalize_metric_name(k): v for k, v in first_item.items()}
+            return {}
+        
+        # Check if 'data' is a dict
+        if 'data' in response_data and isinstance(response_data['data'], dict):
+            return {normalize_metric_name(k): v for k, v in response_data['data'].items()}
+        
+        # Metrics at top level
+        return {normalize_metric_name(k): v for k, v in response_data.items()}
+    
+    return {}
 
 
 class MetricsInput(BaseModel):
@@ -215,9 +266,12 @@ async def get_simple_metrics(metric_list: List[str], date_start: str, date_end: 
                     api_responses[key] = {}
                     api_responses_normalized[key] = {}
                 else:
-                    logger.info(f"Retrieved {key} data with keys: {list(result.keys()) if isinstance(result, dict) else 'not a dict'}")
+                    # Build normalized map and log
+                    normalized = build_lowercase_key_map(result)
+                    normalized_keys = list(normalized.keys())[:10]
+                    logger.info(f"Retrieved {key} data - extracted {len(normalized)} metrics: {normalized_keys}")
                     api_responses[key] = result
-                    api_responses_normalized[key] = build_lowercase_key_map(result)
+                    api_responses_normalized[key] = normalized
         
         # Step 3: Extract requested metrics (try all endpoints for each metric)
         result_metrics = {}
@@ -239,11 +293,12 @@ async def get_simple_metrics(metric_list: List[str], date_start: str, date_end: 
                 # Log available keys from all tried endpoints
                 all_available_keys = []
                 for endpoint in endpoints_to_try:
-                    if endpoint in api_responses:
-                        all_available_keys.extend(list(api_responses[endpoint].keys()))
+                    if endpoint in api_responses_normalized:
+                        all_available_keys.extend(list(api_responses_normalized[endpoint].keys()))
                 logger.warning(f"Metric {metric} not found. Tried endpoints: {endpoints_to_try}. Available keys: {all_available_keys}")
         
-        # Step 4: Return structured JSON
+        # Step 4: Truncate decimals and return structured JSON
+        result_metrics = truncate_decimals(result_metrics)
         output = {
             "status": "success",
             "metrics": result_metrics,
