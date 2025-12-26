@@ -157,7 +157,7 @@ To evaluate other nodes (e.g., `extract_dates_comparison_node`):
 ### Evaluation runs but scores are 0
 - Check dataset column names match exactly
 - Verify outputs structure matches what evaluators expect
-- Look at individual run traces in LangSmith UI for details
+- Look at individual run traces in LangSmith for details
 
 ## Resources
 
