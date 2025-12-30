@@ -64,11 +64,17 @@ class AgentState(TypedDict):
     # ========== Classifier Output ==========
     question_type: Literal[
         "metrics_query",
-        "compare_query",
+        "insight_query",
         "asin_product",
         "hardcoded",
         "other_query"
     ]
+    
+    # Sub-classification for insight_query type
+    insight_intent: Optional[Literal[
+        "net_profit_loss",
+        "comparison",
+    ]]
     
     # ========== Handler Processing ==========
     requested_metrics: Optional[List[str]]

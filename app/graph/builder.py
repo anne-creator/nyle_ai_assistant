@@ -8,7 +8,7 @@ from app.graph.nodes import (
     extractor_evaluator_node,
     classify_question_node,
     metrics_query_handler_node,
-    compare_query_handler_node,
+    insight_query_handler_node,
     asin_product_handler_node,
     hardcoded_response_node,
     other_handler_node
@@ -21,7 +21,7 @@ def route_by_question_type(state: AgentState) -> str:
     
     routing_map = {
         "metrics_query": "metrics_query_handler",
-        "compare_query": "compare_query_handler",
+        "insight_query": "insight_query_handler",
         "asin_product": "asin_product_handler",
         "hardcoded": "hardcoded_response",
         "other_query": "other_handler"
@@ -53,7 +53,7 @@ def create_chatbot_graph():
     
     # Add handler nodes
     workflow.add_node("metrics_query_handler", metrics_query_handler_node)
-    workflow.add_node("compare_query_handler", compare_query_handler_node)
+    workflow.add_node("insight_query_handler", insight_query_handler_node)
     workflow.add_node("asin_product_handler", asin_product_handler_node)
     workflow.add_node("hardcoded_response", hardcoded_response_node)
     workflow.add_node("other_handler", other_handler_node)
@@ -75,7 +75,7 @@ def create_chatbot_graph():
         route_by_question_type,
         {
             "metrics_query_handler": "metrics_query_handler",
-            "compare_query_handler": "compare_query_handler",
+            "insight_query_handler": "insight_query_handler",
             "asin_product_handler": "asin_product_handler",
             "hardcoded_response": "hardcoded_response",
             "other_handler": "other_handler"
@@ -84,7 +84,7 @@ def create_chatbot_graph():
     
     # All handlers end the flow
     workflow.add_edge("metrics_query_handler", END)
-    workflow.add_edge("compare_query_handler", END)
+    workflow.add_edge("insight_query_handler", END)
     workflow.add_edge("asin_product_handler", END)
     workflow.add_edge("hardcoded_response", END)
     workflow.add_edge("other_handler", END)

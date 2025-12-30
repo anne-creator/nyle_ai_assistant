@@ -248,6 +248,54 @@ class MathMetricRetriever:
         logger.info(f"Calling {endpoint}")
         return await self.client.get(endpoint, params)
 
+    # ========== API 8: Non-Optimal Ad Spends ==========
+    async def get_non_optimal_spends(
+        self,
+        date_start: str,
+        date_end: str,
+        compare_date_start: Optional[str] = None,
+        compare_date_end: Optional[str] = None,
+        timespan: Optional[str] = None,
+        country: Optional[str] = None,
+        asin: Optional[str] = None
+    ) -> float:
+        """
+        GET /math/ads/non-optimal-spends
+        
+        Returns total ad spend from non-optimal campaigns (a single number).
+        
+        Tier classification uses 3-month lookback for each day:
+        - 'No Sales': campaigns with 3-month sales = 0
+        - ACOS > 100%: campaigns where 3-month spend > 3-month sales
+        
+        Args:
+            date_start: Start date of the query range (YYYY-MM-DD) - Required
+            date_end: End date of the query range (YYYY-MM-DD) - Required
+            compare_date_start: Start date for comparison period
+            compare_date_end: End date for comparison period
+            timespan: Time granularity for responses (day/week/month)
+            country: Country/marketplace code to filter by (e.g., US, UK, DE)
+            asin: Amazon Standard Identification Number to filter by
+        """
+        endpoint = "/math/ads/non-optimal-spends"
+        params = {
+            "date_start": date_start,
+            "date_end": date_end
+        }
+        if compare_date_start:
+            params["compare_date_start"] = compare_date_start
+        if compare_date_end:
+            params["compare_date_end"] = compare_date_end
+        if timespan:
+            params["timespan"] = timespan
+        if country:
+            params["country"] = country
+        if asin:
+            params["asin"] = asin
+
+        logger.info(f"Calling {endpoint}")
+        return await self.client.get(endpoint, params)
+
 
 # ========== Singleton Instance - Use this everywhere ==========
 metrics_api = MathMetricRetriever()

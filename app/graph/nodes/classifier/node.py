@@ -7,17 +7,17 @@ from app.models.agentState import AgentState
 from app.config import get_settings
 from app.graph.nodes.classifier.prompt import (
     HARDCODED_QUESTIONS,
-    COMPARISON_KEYWORDS,
+    INSIGHT_KEYWORDS,
     METRICS_VS_OTHER_PROMPT
 )
 
 logger = logging.getLogger(__name__)
 
 
-def _has_comparison_keywords(question: str) -> bool:
-    """Check if question contains comparison keywords."""
+def _has_insight_keywords(question: str) -> bool:
+    """Check if question contains insight/comparison keywords."""
     question_lower = question.lower()
-    return any(keyword in question_lower for keyword in COMPARISON_KEYWORDS)
+    return any(keyword in question_lower for keyword in INSIGHT_KEYWORDS)
 
 
 def _is_hardcoded(question: str) -> bool:
@@ -65,7 +65,7 @@ def classify_question_node(state: AgentState) -> AgentState:
     Classification priority:
     1. hardcoded - Exact match in hardcoded questions dictionary
     2. asin_product - ASIN param exists OR question contains "ASIN"/"ASINs"
-    3. compare_query - compare_date_start exists OR question contains comparison keywords
+    3. insight_query - compare_date_start exists OR question contains insight keywords
     4. metrics_query vs other_query - AI decides (business question vs general question)
     """
     
@@ -86,10 +86,10 @@ def classify_question_node(state: AgentState) -> AgentState:
         state["question_type"] = question_type
         return state
     
-    # 3. Check compare query
-    if state.get("compare_date_start") or _has_comparison_keywords(question):
-        question_type = "compare_query"
-        logger.info(f"Classified as compare_query (comparison detected)")
+    # 3. Check insight query
+    if state.get("compare_date_start") or _has_insight_keywords(question):
+        question_type = "insight_query"
+        logger.info(f"Classified as insight_query (insight/comparison detected)")
         state["question_type"] = question_type
         return state
     
