@@ -196,6 +196,44 @@ class MathMetricRetriever:
         logger.info(f"Calling {endpoint}")
         return await self.client.get(endpoint, params)
 
+    # ========== API 7: Combined Ads & Organic Keywords ==========
+    async def get_combined_ads_organic_keywords(
+        self,
+        sort_field: str,
+        sort_direction: str,
+        offset: int = 0,
+        limit: int = 10,
+        date_start: Optional[str] = None,
+        date_end: Optional[str] = None
+    ) -> dict:
+        """
+        GET /math/combined/ads_organic_keywords
+
+        Returns combined ads and organic keyword performance data.
+
+        Args:
+            sort_field: Field to sort by (e.g., 'combined_sales')
+            sort_direction: Sort direction ('asc' or 'desc')
+            offset: Number of records to skip (default: 0)
+            limit: Number of records to return (default: 10)
+            date_start: Optional start date in YYYY-MM-DD format
+            date_end: Optional end date in YYYY-MM-DD format
+        """
+        endpoint = "/math/combined/ads_organic_keywords"
+        params = {
+            "sort_field": sort_field,
+            "sort_direction": sort_direction,
+            "offset": offset,
+            "limit": limit
+        }
+        if date_start:
+            params["date_start"] = date_start
+        if date_end:
+            params["date_end"] = date_end
+
+        logger.info(f"Calling {endpoint}")
+        return await self.client.get(endpoint, params)
+
 
 # ========== Singleton Instance - Use this everywhere ==========
 metrics_api = MathMetricRetriever()

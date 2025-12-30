@@ -1,7 +1,7 @@
 """
 Test for Metrics Access Layer - Using MathMetricRetriever Methods
 
-This test calls all 6 methods from metrics_api.py to get real data
+This test calls all 7 methods from metrics_api.py to get real data
 from the Nyle math backend.
 
 Configuration: Fill in JWT_TOKEN, ENVIRONMENT, and date range below.
@@ -22,7 +22,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 # ============================================================
 
 # 1. Your JWT Token
-JWT_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY2Mzc4NzkyLCJpYXQiOjE3NjYzNzUxOTIsImp0aSI6IjkwYjhiZjEwZDA1YzQzOTY5ZjU4ZGE1YzdkMjBmNWFmIiwic3ViIjoiNGY4OWJlOWUtZTljMS00M2YyLWI1NzMtNTVjNmNlZTM0NDQxIiwic2NvcGVzIjoiIiwiYXVkIjpbImFwaSJdLCJpc3MiOiJueWxlLmFpIn0.8i52ItyI511Jaa7pCdqBfGwzAPsHp-o0hU2udfnyicw"
+JWT_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY3MTE3Njk2LCJpYXQiOjE3NjcwMzEyOTYsImp0aSI6IjRmNzdlNmI2ZjExYjRlM2Y5MTcyMDEyNzU4OGZmZjk4Iiwic3ViIjoiNGY4OWJlOWUtZTljMS00M2YyLWI1NzMtNTVjNmNlZTM0NDQxIiwiaXNzIjoibnlsZS5haSJ9.2-zmMF_jMs97DiRQ-UP8u5rDoxNDMI5c8gs5FyEr_TU"
 
 # 2. Environment (determines which base URL to use)
 #    "dev" -> https://api0.dev.nyle.ai/math/v1
@@ -71,11 +71,11 @@ async def test_method(method_name: str, method_call, api_name: str):
 
 
 async def test_all_apis():
-    """Test all 6 methods from metrics_api.py"""
+    """Test all 7 methods from metrics_api.py"""
 
     print("\n" + "🚀 " + "="*56 + " 🚀")
     print("   TESTING MATH METRIC RETRIEVER")
-    print("   Calling 6 Methods from metrics_api.py")
+    print("   Calling 7 Methods from metrics_api.py")
     print("🚀 " + "="*56 + " 🚀")
     
     settings = get_settings()
@@ -151,12 +151,26 @@ async def test_all_apis():
         results["total_metrics_summary"] = await test_method(
             method_name="get_total_metrics_summary()",
             method_call=lambda: metrics_api.get_total_metrics_summary(
-                date_start=DATE_START, 
+                date_start=DATE_START,
                 date_end=DATE_END
             ),
             api_name="Method 6: get_total_metrics_summary"
         )
-        
+
+        # Method 7: get_combined_ads_organic_keywords
+        results["combined_keywords"] = await test_method(
+            method_name="get_combined_ads_organic_keywords()",
+            method_call=lambda: metrics_api.get_combined_ads_organic_keywords(
+                sort_field="combined_sales",
+                sort_direction="desc",
+                offset=0,
+                limit=10,
+                date_start=DATE_START,
+                date_end=DATE_END
+            ),
+            api_name="Method 7: get_combined_ads_organic_keywords"
+        )
+
         # Summary
         print("\n" + "="*60)
         print("📊 TEST SUMMARY")
@@ -170,7 +184,7 @@ async def test_all_apis():
         print(f"Failed: {total_count - success_count}")
         
         if success_count == total_count:
-            print("\n✅ ALL 6 METHODS PASSED!")
+            print("\n✅ ALL 7 METHODS PASSED!")
         else:
             print(f"\n⚠️  {total_count - success_count} method(s) failed")
 
