@@ -199,37 +199,51 @@ class MathMetricRetriever:
     # ========== API 7: Combined Ads & Organic Keywords ==========
     async def get_combined_ads_organic_keywords(
         self,
-        sort_field: str,
-        sort_direction: str,
-        offset: int = 0,
-        limit: int = 10,
-        date_start: Optional[str] = None,
-        date_end: Optional[str] = None
+        date_start: str,
+        date_end: str,
+        sort_field: Optional[str] = None,
+        sort_direction: Optional[str] = None,
+        offset: Optional[int] = None,
+        limit: Optional[int] = None,
+        country: Optional[str] = None,
+        asin: Optional[str] = None,
+        search_query: Optional[str] = None
     ) -> dict:
         """
         GET /math/combined/ads_organic_keywords
 
-        Returns combined ads and organic keyword performance data.
+        Returns paginated list of search terms with combined ads + organic metrics.
 
         Args:
-            sort_field: Field to sort by (e.g., 'combined_sales')
-            sort_direction: Sort direction ('asc' or 'desc')
-            offset: Number of records to skip (default: 0)
-            limit: Number of records to return (default: 10)
-            date_start: Optional start date in YYYY-MM-DD format
-            date_end: Optional end date in YYYY-MM-DD format
+            date_start: Start date of the query range (YYYY-MM-DD) - Required
+            date_end: End date of the query range (YYYY-MM-DD) - Required
+            sort_field: Field to sort results by (e.g., 'combined_sales')
+            sort_direction: Sort order ('asc' or 'desc')
+            offset: Number of items to skip for pagination
+            limit: Max number of items to return per page
+            country: Country/marketplace code to filter by (e.g., US, UK, DE)
+            asin: Amazon Standard Identification Number to filter by
+            search_query: Partial match filter for search terms (case-insensitive)
         """
         endpoint = "/math/combined/ads_organic_keywords"
         params = {
-            "sort_field": sort_field,
-            "sort_direction": sort_direction,
-            "offset": offset,
-            "limit": limit
+            "date_start": date_start,
+            "date_end": date_end
         }
-        if date_start:
-            params["date_start"] = date_start
-        if date_end:
-            params["date_end"] = date_end
+        if sort_field:
+            params["sort_field"] = sort_field
+        if sort_direction:
+            params["sort_direction"] = sort_direction
+        if offset is not None:
+            params["offset"] = offset
+        if limit is not None:
+            params["limit"] = limit
+        if country:
+            params["country"] = country
+        if asin:
+            params["asin"] = asin
+        if search_query:
+            params["search_query"] = search_query
 
         logger.info(f"Calling {endpoint}")
         return await self.client.get(endpoint, params)
