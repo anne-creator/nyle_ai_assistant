@@ -66,25 +66,25 @@ def build_lowercase_key_map(response_data: dict) -> Dict[str, Any]:
     return {normalize_metric_name(k): v for k, v in response_data.items()}
 
 
-async def fetch_asin_units_cvr(asin: str, date_start: str, date_end: str, timespan: Optional[str] = None) -> Dict[str, Any]:
+async def fetch_asin_net_profit_roi(asin: str, date_start: str, date_end: str, timespan: Optional[str] = None) -> Dict[str, Any]:
     """
-    Fetch total_units_sold and cvr for a specific ASIN from the total endpoint.
+    Fetch net_profit and roi for a specific ASIN from the cfo endpoint.
     
     Returns:
-        Dict with 'units' and 'cvr' keys
+        Dict with 'net_profit' and 'roi' keys
     """
     try:
-        result = await metrics_api.get_total_metrics_summary(
+        result = await metrics_api.get_financial_summary(
             date_start, date_end, asin=asin, timespan=timespan
         )
         normalized = build_lowercase_key_map(result)
         return {
-            "units": normalized.get("total_units_sold", 0),
-            "cvr": normalized.get("cvr", 0)
+            "net_profit": normalized.get("net_profit", 0),
+            "roi": normalized.get("roi", 0)
         }
     except Exception as e:
-        logger.warning(f"Failed to fetch units/cvr for ASIN {asin}: {e}")
-        return {"units": 0, "cvr": 0}
+        logger.warning(f"Failed to fetch net_profit/roi for ASIN {asin}: {e}")
+        return {"net_profit": 0, "roi": 0}
 
 
 # ========== Tool 1: get_ranked_products ==========
@@ -108,8 +108,8 @@ class RankedProductsInput(BaseModel):
         default="total_sales",
         description="Field to sort by: total_sales, net_profit, gross_profit, roi, gross_margin"
     )
-    date_start: str = Field(description="Start date in YYYY-MM-DD format for fetching units/CVR")
-    date_end: str = Field(description="End date in YYYY-MM-DD format for fetching units/CVR")
+    date_start: str = Field(description="Start date in YYYY-MM-DD format for fetching net_profit/ROI")
+    date_end: str = Field(description="End date in YYYY-MM-DD format for fetching net_profit/ROI")
 
 
 @tool(args_schema=RankedProductsInput, return_direct=False)
@@ -121,22 +121,22 @@ async def get_ranked_products(
     order_by: str = "total_sales"
 ) -> str:
     """
-    Get top/bottom N products sorted by a metric, including units sold and CVR.
+    Get top/bottom N products sorted by a metric, including net profit and ROI.
     
     Steps:
     1. Get ranked products from /amazon/v1/products/own
-    2. For each ASIN, fetch total_units_sold and cvr from the total metrics endpoint
+    2. For each ASIN, fetch net_profit and roi from the cfo endpoint
     3. Combine and return all data
     
     Args:
         limit: Number of products to return (e.g., 5 for 'top 5')
         order_direction: 1=descending (top/best), 0=ascending (lowest/worst)
         order_by: Field to sort by (total_sales, net_profit, gross_profit, roi, gross_margin)
-        date_start: Start date for fetching units/CVR metrics
-        date_end: End date for fetching units/CVR metrics
+        date_start: Start date for fetching net_profit/ROI metrics
+        date_end: End date for fetching net_profit/ROI metrics
         
     Returns:
-        JSON string containing list of products with total_sales, units, and cvr
+        JSON string containing list of products with total_sales, net_profit, and roi
     """
     logger.info(f"get_ranked_products called: limit={limit}, order_direction={order_direction}, order_by={order_by}")
     
@@ -158,30 +158,30 @@ async def get_ranked_products(
         
         logger.info(f"Retrieved {len(products)} products")
         
-        # Step 2: For each ASIN, fetch units and CVR in parallel (with timespan for math API)
+        # Step 2: For each ASIN, fetch net_profit and roi in parallel (with timespan for math API)
         asin_list = [p.get("asin") for p in products if p.get("asin")]
         
-        units_cvr_tasks = [
-            fetch_asin_units_cvr(asin, date_start, date_end, timespan=timespan)
+        net_profit_roi_tasks = [
+            fetch_asin_net_profit_roi(asin, date_start, date_end, timespan=timespan)
             for asin in asin_list
         ]
-        units_cvr_results = await asyncio.gather(*units_cvr_tasks)
+        net_profit_roi_results = await asyncio.gather(*net_profit_roi_tasks)
         
         # Create lookup map
-        asin_to_units_cvr = dict(zip(asin_list, units_cvr_results))
+        asin_to_net_profit_roi = dict(zip(asin_list, net_profit_roi_results))
         
         # Step 3: Combine data
         formatted_products = []
         for product in products:
             asin = product.get("asin")
             exec_summary = product.get("executive_summary", {})
-            units_cvr = asin_to_units_cvr.get(asin, {"units": 0, "cvr": 0})
+            net_profit_roi = asin_to_net_profit_roi.get(asin, {"net_profit": 0, "roi": 0})
             
             formatted_products.append({
                 "asin": asin,
                 "total_sales": exec_summary.get("total_sales", 0),
-                "units": units_cvr["units"],
-                "cvr": units_cvr["cvr"],
+                "net_profit": net_profit_roi["net_profit"],
+                "roi": net_profit_roi["roi"],
             })
         
         # Truncate decimals before returning

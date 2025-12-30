@@ -4,9 +4,9 @@ Response Templates for ASIN Product Handler.
 Templates are stored separately for maintainability and injection into prompts.
 """
 
-# For ranking queries (top/bottom N) - includes Total Sales, Units, CVR
-# Format: ASIN: B08XYZ1234 - Total Sales: $2,400 | Units: 150 | CVR: 8%
-RANKING_ITEM_TEMPLATE = """ASIN: {asin} - Total Sales: ${total_sales:,.0f} | Units: {units:,} | CVR: {cvr:.0f}%"""
+# For ranking queries (top/bottom N) - includes Total Sales, Net Profit, ROI
+# Format: ASIN: B08XYZ1234 - Total Sales: $xxx | Net Profit: $xxx | ROI: xx%
+RANKING_ITEM_TEMPLATE = """ASIN: {asin} - Total Sales: ${total_sales:,.0f} | Net Profit: ${net_profit:,.0f} | ROI: {roi:.0f}%"""
 
 # For single ASIN queries - same format as ranking but for one product
 # Format: For your specific ASIN: B08XYZ123 Total Sales yesterday (Dec 17): $2,400 | Units: 150
@@ -37,10 +37,14 @@ def format_templates_for_prompt() -> str:
 ### Ranking Query Response (per item):
 {RANKING_ITEM_TEMPLATE}
 
+**IMPORTANT: Add an empty line between each ASIN entry.**
+
 Example output for "top 5 selling ASINs":
-ASIN: B08XYZ1234 - Total Sales: $2,400 | Units: 150 | CVR: 8%
-ASIN: B09ABC4567 - Total Sales: $1,800 | Units: 90 | CVR: 6%
-ASIN: B07DEF7891 - Total Sales: $950 | Units: 200 | CVR: 12%
+ASIN: B08XYZ1234 - Total Sales: $2,400 | Net Profit: $1,200 | ROI: 50%
+
+ASIN: B09ABC4567 - Total Sales: $1,800 | Net Profit: $900 | ROI: 45%
+
+ASIN: B07DEF7891 - Total Sales: $950 | Net Profit: $475 | ROI: 40%
 
 ### Single ASIN Query Response:
 {SINGLE_ASIN_TEMPLATE}

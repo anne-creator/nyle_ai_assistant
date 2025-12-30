@@ -1,12 +1,11 @@
 import logging
-import random
 from langchain_openai import ChatOpenAI
 
 from app.models.agentState import AgentState
 from app.config import get_settings
 from .prompt import (
     SUB_CLASSIFY_PROMPT,
-    GREETING_RESPONSES,
+    GREETING_RESPONSE,
     ABOUT_SERVICE_RESPONSE,
     KNOWLEDGE_ANSWER_PROMPT
 )
@@ -42,7 +41,7 @@ def other_handler_node(state: AgentState) -> AgentState:
 
     # Route based on sub-type
     if query_type == "greeting":
-        state["response"] = random.choice(GREETING_RESPONSES)
+        state["response"] = GREETING_RESPONSE
         logger.info("Returned greeting response")
 
     elif query_type == "about_service":
@@ -58,7 +57,7 @@ def other_handler_node(state: AgentState) -> AgentState:
 
     else:
         # Fallback for unrecognized sub-types
-        state["response"] = random.choice(GREETING_RESPONSES)
+        state["response"] = GREETING_RESPONSE
         logger.warning(f"Unrecognized sub-type '{query_type}', using greeting fallback")
 
     return state
