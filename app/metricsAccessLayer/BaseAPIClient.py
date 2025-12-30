@@ -34,19 +34,24 @@ class BaseAPIClient:
             "Content-Type": "application/json"
         }
     
-    async def get(self, endpoint: str, params: Optional[dict] = None) -> dict:
+    async def get(self, endpoint: str, params: Optional[dict] = None, timeout: Optional[float] = None) -> dict:
         """Make GET request."""
         url = f"{self.base_url}{endpoint}"
-        logger.info(f"GET {url}")
+        request_timeout = timeout or self.timeout
+        logger.info(f"GET {url} with params: {params}, timeout: {request_timeout}s")
         
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
-            response = await client.get(
-                url,
-                headers=self._get_headers(),
-                params=params
-            )
-            response.raise_for_status()
-            return response.json()
+        try:
+            async with httpx.AsyncClient(timeout=request_timeout) as client:
+                response = await client.get(
+                    url,
+                    headers=self._get_headers(),
+                    params=params
+                )
+                response.raise_for_status()
+                return response.json()
+        except httpx.ReadTimeout:
+            logger.error(f"Timeout after {request_timeout}s calling {endpoint} with params {params}")
+            raise
     
     async def post(self, endpoint: str, data: Optional[dict] = None) -> dict:
         """Make POST request."""

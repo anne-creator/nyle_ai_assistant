@@ -20,27 +20,7 @@ Examples:
 **Return ONLY the type name (no explanation).**"""
 
 
-# LLM explanation prompt for net profit loss
-NET_PROFIT_LOSS_EXPLANATION_PROMPT = """Generate a clear explanation for the user's net profit loss data.
-
-**Data:**
-- Period A ({period_a_start} to {period_a_end}): Non-optimal spend = ${non_optimal_a:,.2f}
-- Period B ({period_b_start} to {period_b_end}): Non-optimal spend = ${non_optimal_b:,.2f}
-- Delta: ${delta:,.2f}
-- TACoS Period A: {tacos_a}%
-- TACoS Period B: {tacos_b}%
-
-**User Question:** {question}
-
-**Instructions:**
-- Start with the net profit loss amount for the requested period
-- Explain the change compared to the previous period
-- Reference TACoS changes as a contributing factor
-- Keep it concise (2-3 sentences)
-- Use $ for currency with commas
-- Use % for percentages
-
-**Response:**"""
+# Note: Net profit loss uses deterministic formatting in node.py (no LLM prompt needed)
 
 
 # LLM explanation prompt for general comparison

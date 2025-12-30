@@ -294,7 +294,8 @@ class MathMetricRetriever:
             params["asin"] = asin
 
         logger.info(f"Calling {endpoint}")
-        return await self.client.get(endpoint, params)
+        # This endpoint is slow (~30s), use extended timeout
+        return await self.client.get(endpoint, params, timeout=60.0)
 
 
 # ========== Singleton Instance - Use this everywhere ==========

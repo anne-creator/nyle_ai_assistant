@@ -9,7 +9,6 @@ from app.metricsAccessLayer import metrics_api
 from app.context import set_jwt_token_for_task
 from app.graph.nodes.insight_query_handler.prompt import (
     INSIGHT_INTENT_PROMPT,
-    NET_PROFIT_LOSS_EXPLANATION_PROMPT,
     COMPARISON_EXPLANATION_PROMPT
 )
 
@@ -57,8 +56,8 @@ async def _execute_net_profit_loss_pipeline(state: AgentState) -> dict:
     Calls:
     1. get_non_optimal_spends() for period A
     2. get_non_optimal_spends() for period B (derived if not provided)
-    3. get_ads_executive_summary() for period A (TACoS)
-    4. get_ads_executive_summary() for period B (TACoS)
+    3. get_ads_executive_summary() for period A (Ad TOS IS)
+    4. get_ads_executive_summary() for period B (Ad TOS IS)
     """
     date_start = state["date_start"]
     date_end = state["date_end"]
@@ -80,12 +79,9 @@ async def _execute_net_profit_loss_pipeline(state: AgentState) -> dict:
     non_optimal_b = await metrics_api.get_non_optimal_spends(compare_start, compare_end)
     ads_b = await metrics_api.get_ads_executive_summary(compare_start, compare_end)
     
-    # Extract TACoS from ads data (handle different possible response structures)
-    tacos_a = ads_a.get("tacos", ads_a.get("TACoS", 0))
-    tacos_b = ads_b.get("tacos", ads_b.get("TACoS", 0))
-    
-    # Calculate delta
-    delta = non_optimal_a - non_optimal_b
+    # Extract Ad TOS IS (Top of Search Impression Share) from ads data
+    tos_is_a = ads_a.get("tos_is", ads_a.get("TOS_IS", ads_a.get("top_of_search_is", 0)))
+    tos_is_b = ads_b.get("tos_is", ads_b.get("TOS_IS", ads_b.get("top_of_search_is", 0)))
     
     return {
         "period_a_start": date_start,
@@ -94,9 +90,8 @@ async def _execute_net_profit_loss_pipeline(state: AgentState) -> dict:
         "period_b_end": compare_end,
         "non_optimal_a": non_optimal_a,
         "non_optimal_b": non_optimal_b,
-        "delta": delta,
-        "tacos_a": tacos_a,
-        "tacos_b": tacos_b,
+        "tos_is_a": tos_is_a,
+        "tos_is_b": tos_is_b,
     }
 
 
@@ -134,30 +129,25 @@ async def _execute_comparison_pipeline(state: AgentState) -> dict:
     }
 
 
-def _generate_net_profit_explanation(data: dict, question: str) -> str:
-    """Generate LLM explanation for net profit loss data."""
-    settings = get_settings()
-    llm = ChatOpenAI(
-        model=settings.openai_model,
-        temperature=0.3,
-        api_key=settings.openai_api_key
-    )
+def _format_net_profit_response(data: dict) -> str:
+    """
+    Deterministic formatting for net profit loss response.
+    No LLM needed - uses fixed template with metric values.
+    """
+    non_optimal_a = data["non_optimal_a"]
+    tos_is_a = data["tos_is_a"]
+    tos_is_b = data["tos_is_b"]
+    period_a_start = data["period_a_start"]
+    period_a_end = data["period_a_end"]
+    period_b_start = data["period_b_start"]
+    period_b_end = data["period_b_end"]
     
-    prompt = NET_PROFIT_LOSS_EXPLANATION_PROMPT.format(
-        period_a_start=data["period_a_start"],
-        period_a_end=data["period_a_end"],
-        period_b_start=data["period_b_start"],
-        period_b_end=data["period_b_end"],
-        non_optimal_a=data["non_optimal_a"],
-        non_optimal_b=data["non_optimal_b"],
-        delta=data["delta"],
-        tacos_a=data["tacos_a"],
-        tacos_b=data["tacos_b"],
-        question=question
+    return (
+        f"Your net profit loss due to non-optimal spend over {period_a_start} - {period_a_end} "
+        f"was ${non_optimal_a:,.2f}, because you set your goal:\n"
+        f"- Ad TOS IS as {tos_is_a}% at [{period_a_start} - {period_a_end}] "
+        f"vs Ad TOS IS as {tos_is_b}% at [{period_b_start} - {period_b_end}]"
     )
-    
-    response = llm.invoke(prompt)
-    return response.content.strip()
 
 
 def _generate_comparison_explanation(data: dict, question: str) -> str:
@@ -209,7 +199,7 @@ async def insight_query_handler_node(state: AgentState) -> AgentState:
     # 2. Execute deterministic pipeline based on intent
     if insight_intent == "net_profit_loss":
         data = await _execute_net_profit_loss_pipeline(state)
-        response = _generate_net_profit_explanation(data, question)
+        response = _format_net_profit_response(data)
     else:  # comparison
         data = await _execute_comparison_pipeline(state)
         response = _generate_comparison_explanation(data, question)
