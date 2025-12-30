@@ -4,6 +4,7 @@ from app.graph.nodes.metrics_query_handler.node import metrics_query_handler_nod
 from app.graph.nodes.insight_query_handler.node import insight_query_handler_node
 from app.graph.nodes.asin_product_handler.node import asin_product_handler_node
 from app.graph.nodes.hardcoded_response.node import hardcoded_response_node
+from app.graph.nodes.other_handler.node import other_handler_node
 from app.graph.nodes.label_normalizer.node import label_normalizer_node
 from app.graph.nodes.extractor_evaluator.node import extractor_evaluator_node
 
@@ -14,6 +15,7 @@ __all__ = [
     "insight_query_handler_node",
     "asin_product_handler_node",
     "hardcoded_response_node",
+    "other_handler_node",
     "label_normalizer_node",
     "extractor_evaluator_node"
 ]
