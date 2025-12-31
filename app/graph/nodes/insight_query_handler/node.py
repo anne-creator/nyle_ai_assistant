@@ -129,6 +129,30 @@ async def _execute_comparison_pipeline(state: AgentState) -> dict:
     }
 
 
+def _format_date_range(start_str: str, end_str: str) -> str:
+    """
+    Format date range like metrics_query_handler: (Sep 1-14, 2025)
+    - Same month: "Sep 1-14, 2025"
+    - Different months: "Sep 1 - Oct 14, 2025"
+    - Single day: "Sep 1, 2025"
+    """
+    start = datetime.strptime(start_str, "%Y-%m-%d")
+    end = datetime.strptime(end_str, "%Y-%m-%d")
+    
+    if start == end:
+        # Single day: "Sep 1, 2025"
+        return start.strftime("%b %-d, %Y")
+    elif start.month == end.month and start.year == end.year:
+        # Same month: "Sep 1-14, 2025"
+        return f"{start.strftime('%b')} {start.day}-{end.day}, {start.year}"
+    elif start.year == end.year:
+        # Different months, same year: "Sep 1 - Oct 14, 2025"
+        return f"{start.strftime('%b')} {start.day} - {end.strftime('%b')} {end.day}, {start.year}"
+    else:
+        # Different years: "Dec 15, 2024 - Jan 14, 2025"
+        return f"{start.strftime('%b')} {start.day}, {start.year} - {end.strftime('%b')} {end.day}, {end.year}"
+
+
 def _format_net_profit_response(data: dict) -> str:
     """
     Deterministic formatting for net profit loss response.
@@ -137,16 +161,16 @@ def _format_net_profit_response(data: dict) -> str:
     non_optimal_a = data["non_optimal_a"]
     tos_is_a = data["tos_is_a"]
     tos_is_b = data["tos_is_b"]
-    period_a_start = data["period_a_start"]
-    period_a_end = data["period_a_end"]
-    period_b_start = data["period_b_start"]
-    period_b_end = data["period_b_end"]
+    
+    # Format date ranges for readability (Sep 1-14, 2025 format)
+    period_a = _format_date_range(data["period_a_start"], data["period_a_end"])
+    period_b = _format_date_range(data["period_b_start"], data["period_b_end"])
     
     return (
-        f"Your net profit loss due to non-optimal spend over {period_a_start} - {period_a_end} "
+        f"Your net profit loss due to non-optimal spend over {period_a} "
         f"was ${non_optimal_a:,.2f}, because you set your goal:\n"
-        f"- Ad TOS IS as {tos_is_a}% at [{period_a_start} - {period_a_end}] "
-        f"vs Ad TOS IS as {tos_is_b}% at [{period_b_start} - {period_b_end}]"
+        f"- Ad TOS IS as {tos_is_a}% at [{period_a}] "
+        f"vs Ad TOS IS as {tos_is_b}% at [{period_b}]"
     )
 
 
