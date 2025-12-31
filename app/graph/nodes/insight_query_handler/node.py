@@ -169,8 +169,8 @@ def _format_net_profit_response(data: dict) -> str:
     return (
         f"Your net profit loss due to non-optimal spend over {period_a} "
         f"was ${non_optimal_a:,.2f}, because you set your goal:\n"
-        f"- Ad TOS IS as {tos_is_a}% at [{period_a}] "
-        f"vs Ad TOS IS as {tos_is_b}% at [{period_b}]"
+        f"- Ad TOS IS as {tos_is_a}% at {period_a} "
+        f"vs Ad TOS IS as {tos_is_b}% at {period_b}"
     )
 
 
