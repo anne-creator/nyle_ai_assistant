@@ -63,6 +63,7 @@ def classify_question_node(state: AgentState) -> AgentState:
     Hybrid classifier: Rule-based for clear cases, AI for ambiguous cases.
 
     Classification priority:
+    0. dashboard_load - interaction_type is "dashboard_load" (deterministic)
     1. hardcoded - Exact match in hardcoded questions dictionary
     2. asin_product - ASIN param exists OR question contains "ASIN"/"ASINs"
     3. insight_query - compare_date_start exists OR question contains insight keywords
@@ -71,6 +72,12 @@ def classify_question_node(state: AgentState) -> AgentState:
     
     question = state.get("question", "")
     logger.info(f"Classifying: '{question}'")
+    
+    # 0. Check for dashboard_load interaction type (deterministic, no AI needed)
+    if state.get("interaction_type") == "dashboard_load":
+        logger.info("Detected dashboard_load interaction type")
+        state["question_type"] = "dashboard_load"
+        return state
     
     # 1. Check hardcoded (exact match)
     if _is_hardcoded(question):

@@ -108,6 +108,28 @@ class ProductsAPIClient:
         
         logger.info(f"Calling {endpoint} with params: {params}")
         return await self._get(endpoint, params)
+    
+    # ========== API: Get Product Details by ASIN ==========
+    async def get_product_details(self, asin: str) -> dict:
+        """
+        GET /amazon/v1/products/own/{asin}
+        
+        Returns product details including image_link.
+        
+        Args:
+            asin: Product ASIN code (e.g., "B07YN9JXNW")
+            
+        Returns:
+            Product dict with:
+            - asin, item_name, item_description
+            - image_link: Amazon CDN URL
+            - price, brand, bullet_points
+            - executive_summary: metrics dict
+            - link: Amazon product page URL
+        """
+        endpoint = f"/amazon/v1/products/own/{asin}"
+        logger.info(f"Fetching product details for ASIN: {asin}")
+        return await self._get(endpoint)
 
 
 # ========== Singleton Instance - Use this everywhere ==========
