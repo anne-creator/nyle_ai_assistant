@@ -63,7 +63,6 @@ class ChatResponse(BaseModel):
     message: str = Field(..., description="Response text (supports markdown)", example="Your ACOS is 24.32%")
     image_url: Optional[str] = Field(None, description="Product image URL. Only present for ASIN queries. Frontend should handle load failures.", example="https://m.media-amazon.com/images/I/71zzJgMMKwL.jpg")
     asin: Optional[str] = Field(None, description="Product ASIN code. Present when query is about specific product.", example="B08XYZ1234")
-    date_range: Optional[dict] = Field(None, description="Time period covered by this response", example={"start_date": "2025-12-16", "end_date": "2025-12-22", "label": "Last 7 days"})
 
 
 @app.post("/chatbot", response_model=ChatResponse, responses={
@@ -77,12 +76,7 @@ class ChatResponse(BaseModel):
                         "value": {
                             "message": "Your total sales for the last 7 days is $45,320.",
                             "image_url": None,
-                            "asin": None,
-                            "date_range": {
-                                "start_date": "2025-12-16",
-                                "end_date": "2025-12-22",
-                                "label": "Last 7 days"
-                            }
+                            "asin": None
                         }
                     },
                     "dashboard_load": {
@@ -90,8 +84,7 @@ class ChatResponse(BaseModel):
                         "value": {
                             "message": "Your products dashboard is ready! Ask me anything about your products.",
                             "image_url": None,
-                            "asin": None,
-                            "date_range": None
+                            "asin": None
                         }
                     },
                     "asin_query": {
@@ -99,12 +92,7 @@ class ChatResponse(BaseModel):
                         "value": {
                             "message": "**Product B08XYZ1234 Performance**\n\nSales: $45,320\nUnits: 1,234\nROI: 32.5%",
                             "image_url": "https://m.media-amazon.com/images/I/71zzJgMMKwL.jpg",
-                            "asin": "B08XYZ1234",
-                            "date_range": {
-                                "start_date": "2025-12-16",
-                                "end_date": "2025-12-22",
-                                "label": "Last 7 days"
-                            }
+                            "asin": "B08XYZ1234"
                         }
                     }
                 }
@@ -131,7 +119,9 @@ async def chatbot(
     When user opens the dashboard page, notify the chatbot:
     - Set `message` to empty string or placeholder
     - Set `interaction_type` to "dashboard_load"
-    - Chatbot responds with greeting (no AI processing needed)
+    - Chatbot routes through classifier to dashboard_load_handler
+    - Currently returns hardcoded greeting template
+    - Future: Will fetch live data (product count, recent sales, alerts, etc.)
     
     ### 3. Product Image Rendering
     When response includes `image_url`:
@@ -145,7 +135,6 @@ async def chatbot(
     - `message`: Always present, contains response text (supports markdown)
     - `image_url`: Optional, only for ASIN queries
     - `asin`: Optional, only when query is about specific product
-    - `date_range`: Optional, time period covered by the response
     """
     
     logger.info(f"Received question: {request.message}")
@@ -205,20 +194,10 @@ async def chatbot(
         image_url = result.get("image_url")
         asin = result.get("asin")
         
-        # Construct date_range if dates are present
-        date_range = None
-        if result.get("date_start") and result.get("date_end"):
-            date_range = {
-                "start_date": result["date_start"],
-                "end_date": result["date_end"],
-                "label": None  # Could be enhanced to include label like "Last 7 days"
-            }
-        
         return ChatResponse(
             message=message,
             image_url=image_url,
-            asin=asin,
-            date_range=date_range
+            asin=asin
         )
 
 
