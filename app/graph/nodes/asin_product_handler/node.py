@@ -41,18 +41,6 @@ async def asin_product_handler_node(state: AgentState) -> AgentState:
     logger.info(f"ASIN: {state.get('asin', 'N/A')}")
     logger.info(f"Date: {state['date_start']} to {state['date_end']}")
     
-    # Fetch product image if ASIN is specified
-    image_url = None
-    if state.get('asin'):
-        try:
-            from app.metricsAccessLayer.products_api import products_api
-            product_details = await products_api.get_product_details(state['asin'])
-            image_url = product_details.get('image_link')
-            logger.info(f"Fetched image URL for ASIN {state['asin']}: {image_url}")
-        except Exception as e:
-            logger.warning(f"Failed to fetch image for ASIN {state['asin']}: {e}")
-            image_url = None
-    
     settings = get_settings()
     
     # Build prompt with templates injected
@@ -93,7 +81,6 @@ async def asin_product_handler_node(state: AgentState) -> AgentState:
     )
     
     state["response"] = result["messages"][-1].content
-    state["image_url"] = image_url
     logger.info("Generated ASIN product response")
     
     return state

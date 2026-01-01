@@ -8,6 +8,7 @@ from app.graph.nodes.hardcoded_response.node import hardcoded_response_node
 from app.graph.nodes.other_handler.node import other_handler_node
 from app.graph.nodes.label_normalizer.node import label_normalizer_node
 from app.graph.nodes.extractor_evaluator.node import extractor_evaluator_node
+from app.graph.nodes.async_image_enricher.node import async_image_enricher_node
 
 __all__ = [
     "message_analyzer_node",
@@ -19,6 +20,7 @@ __all__ = [
     "hardcoded_response_node",
     "other_handler_node",
     "label_normalizer_node",
-    "extractor_evaluator_node"
+    "extractor_evaluator_node",
+    "async_image_enricher_node"
 ]
 

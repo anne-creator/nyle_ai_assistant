@@ -12,7 +12,8 @@ from app.graph.nodes import (
     asin_product_handler_node,
     dashboard_load_handler_node,
     hardcoded_response_node,
-    other_handler_node
+    other_handler_node,
+    async_image_enricher_node
 )
 
 
@@ -61,6 +62,9 @@ def create_chatbot_graph():
     workflow.add_node("hardcoded_response", hardcoded_response_node)
     workflow.add_node("other_handler", other_handler_node)
     
+    # Add enrichment node
+    workflow.add_node("async_image_enricher", async_image_enricher_node)
+    
     # Set entry point
     workflow.set_entry_point("label_normalizer")
     
@@ -86,10 +90,13 @@ def create_chatbot_graph():
         }
     )
     
-    # All handlers end the flow
+    # ASIN handler routes to image enricher, then to END
+    workflow.add_edge("asin_product_handler", "async_image_enricher")
+    workflow.add_edge("async_image_enricher", END)
+    
+    # Other handlers end the flow directly
     workflow.add_edge("metrics_query_handler", END)
     workflow.add_edge("insight_query_handler", END)
-    workflow.add_edge("asin_product_handler", END)
     workflow.add_edge("dashboard_load_handler", END)
     workflow.add_edge("hardcoded_response", END)
     workflow.add_edge("other_handler", END)
