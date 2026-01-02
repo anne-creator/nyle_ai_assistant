@@ -41,7 +41,7 @@ class MathMetricRetriever:
         """Initialize only once."""
         if self._initialized:
             return
-        self.client = BaseAPIClient(api_prefix="/math/v1")
+        self.client = BaseAPIClient(api_prefix="/math/v1/math")
         self._initialized = True
     
     # ========== API 1: Ads Executive Summary ==========
@@ -54,7 +54,7 @@ class MathMetricRetriever:
         timespan: Optional[str] = None
     ) -> dict:
         """
-        GET /math/ads/executive-summary
+        GET /ads/executive-summary
         
         Returns advertising metrics summary, optionally filtered by ASIN.
         """
@@ -81,7 +81,7 @@ class MathMetricRetriever:
         timespan: Optional[str] = None
     ) -> dict:
         """
-        GET /math/cfo/executive-summary
+        GET /cfo/executive-summary
         
         Returns CFO/financial metrics, optionally filtered by ASIN.
         """
@@ -106,7 +106,7 @@ class MathMetricRetriever:
         timespan: Optional[str] = None
     ) -> dict:
         """
-        GET /math/organic/executive-summary
+        GET /organic/executive-summary
         
         Returns organic performance metrics.
         """
@@ -130,7 +130,7 @@ class MathMetricRetriever:
         timespan: Optional[str] = None
     ) -> dict:
         """
-        GET /math/inventory/metrics/executive-summary
+        GET /inventory/metrics/executive-summary
         
         Returns inventory data, optionally filtered by ASIN.
         """
@@ -155,7 +155,7 @@ class MathMetricRetriever:
         timespan: Optional[str] = None
     ) -> dict:
         """
-        GET /math/attribution/metrics
+        GET /attribution/executive-summary
         
         Returns attribution metrics.
         """
@@ -179,7 +179,7 @@ class MathMetricRetriever:
         timespan: Optional[str] = None
     ) -> dict:
         """
-        GET /math/total/executive-summary
+        GET /total/executive-summary
 
         Returns total summary metrics across all areas, optionally filtered by ASIN.
         """
@@ -210,7 +210,7 @@ class MathMetricRetriever:
         search_query: Optional[str] = None
     ) -> dict:
         """
-        GET /math/combined/ads_organic_keywords
+        GET /combined/ads_organic_keywords
 
         Returns paginated list of search terms with combined ads + organic metrics.
 
@@ -260,7 +260,7 @@ class MathMetricRetriever:
         asin: Optional[str] = None
     ) -> float:
         """
-        GET /math/ads/non-optimal-spends
+        GET /ads/non-optimal-spends
         
         Returns total ad spend from non-optimal campaigns (a single number).
         
