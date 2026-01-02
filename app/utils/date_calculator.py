@@ -175,7 +175,26 @@ class DateCalculator:
         return self._this_year()
     
     def _month_range(self, month: int) -> Tuple[str, str]:
+        """
+        Calculate date range for a specific month.
+        
+        Logic for year selection when no year is specified:
+        - If the month is in the future (greater than current month), use previous year
+        - Otherwise, use current year
+        
+        Example: If current date is January 2026:
+        - "January" → January 2026 (current month)
+        - "February" → February 2025 (future month in 2026, so use 2025)
+        - "March" → March 2025 (future month in 2026, so use 2025)
+        - "December" → December 2025 (past month, so use current year's context which means last occurrence)
+        """
+        current_month = self.current_date.month
         year = self.current_date.year
+        
+        # If the specified month is in the future, use previous year
+        if month > current_month:
+            year = year - 1
+        
         last_day = calendar.monthrange(year, month)[1]
         return (
             f"{year}-{month:02d}-01",

@@ -164,6 +164,42 @@ The previous extraction had issues. Please fix them:
     try:
         extraction = llm_with_structure.invoke(prompt)
         
+        # Adjust explicit dates if they're in the future (map to previous year)
+        def adjust_future_date(date_str: str) -> str:
+            """If date is in the future, adjust to previous year."""
+            if not date_str:
+                return date_str
+            
+            try:
+                from datetime import datetime
+                from zoneinfo import ZoneInfo
+                
+                pst_tz = ZoneInfo("America/Los_Angeles")
+                current_date = datetime.now(pst_tz).date()
+                date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
+                
+                # If the date is in the future, use previous year
+                if date_obj > current_date:
+                    adjusted_year = date_obj.year - 1
+                    adjusted_date = date_obj.replace(year=adjusted_year)
+                    logger.info(f"📅 Adjusted future date {date_str} → {adjusted_date.strftime('%Y-%m-%d')}")
+                    return adjusted_date.strftime("%Y-%m-%d")
+                
+                return date_str
+            except Exception as e:
+                logger.warning(f"⚠️ Could not adjust date {date_str}: {e}")
+                return date_str
+        
+        # Apply adjustment to all explicit dates
+        if extraction.date_start_label == "explicit_date":
+            extraction.explicit_date_start = adjust_future_date(extraction.explicit_date_start)
+        if extraction.date_end_label == "explicit_date":
+            extraction.explicit_date_end = adjust_future_date(extraction.explicit_date_end)
+        if extraction.compare_date_start_label == "explicit_date":
+            extraction.explicit_compare_start = adjust_future_date(extraction.explicit_compare_start)
+        if extraction.compare_date_end_label == "explicit_date":
+            extraction.explicit_compare_end = adjust_future_date(extraction.explicit_compare_end)
+        
         # Validate ASIN if extracted
         if extraction.asin:
             # Try to extract from original text first (more reliable)
