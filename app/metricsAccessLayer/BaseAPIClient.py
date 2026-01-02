@@ -34,9 +34,9 @@ class BaseAPIClient:
             api_prefix: API path prefix to append to base URL
         """
         if settings.environment == "dev":
-            base = "https://api0.dev.nyle.ai"
+            base = settings.dev_base_url
         else:
-            base = "https://api.nyle.ai"
+            base = settings.prod_base_url
         
         return f"{base}{api_prefix}"
     

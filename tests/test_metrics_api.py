@@ -82,7 +82,7 @@ async def test_all_apis():
     
     print(f"\n📋 Configuration:")
     print(f"   Environment: {settings.environment}")
-    print(f"   Base URL: {settings.get_api_base_url()}")
+    print(f"   Base URL: {settings.get_base_url()}")
     print(f"   JWT Token: {JWT_TOKEN[:20]}..." if JWT_TOKEN else "   JWT Token: NOT SET!")
     print(f"   Date Range: {DATE_START} to {DATE_END}")
     

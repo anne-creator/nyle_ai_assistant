@@ -15,8 +15,8 @@ class Settings(BaseSettings):
     openai_model: str = "gpt-4o-mini"
     
     # API Base URLs
-    dev_api_base_url: str = "https://api0.dev.nyle.ai/math/v1"
-    prod_api_base_url: str = "https://api.nyle.ai/math/v1"
+    dev_base_url: str = "https://api0.dev.nyle.ai"
+    prod_base_url: str = "https://api.nyle.ai"
     
     # LangSmith (optional)
     langchain_tracing_v2: bool = False
@@ -29,11 +29,11 @@ class Settings(BaseSettings):
         extra="ignore"
     )
     
-    def get_api_base_url(self) -> str:
+    def get_base_url(self) -> str:
         """Get base URL based on environment. Local and prod use prod URL."""
         if self.environment == "dev":
-            return self.dev_api_base_url
-        return self.prod_api_base_url
+            return self.dev_base_url
+        return self.prod_base_url
 
 
 @lru_cache()
