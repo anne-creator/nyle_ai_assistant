@@ -41,7 +41,7 @@ class MathMetricRetriever:
         """Initialize only once."""
         if self._initialized:
             return
-        self.client = BaseAPIClient()
+        self.client = BaseAPIClient(api_prefix="/math/v1")
         self._initialized = True
     
     # ========== API 1: Ads Executive Summary ==========
@@ -58,7 +58,7 @@ class MathMetricRetriever:
         
         Returns advertising metrics summary, optionally filtered by ASIN.
         """
-        endpoint = "/math/ads/executive-summary"
+        endpoint = "/ads/executive-summary"
         params = {
             "date_start": date_start,
             "date_end": date_end,
@@ -85,7 +85,7 @@ class MathMetricRetriever:
         
         Returns CFO/financial metrics, optionally filtered by ASIN.
         """
-        endpoint = "/math/cfo/executive-summary"
+        endpoint = "/cfo/executive-summary"
         params = {
             "date_start": date_start,
             "date_end": date_end
@@ -110,7 +110,7 @@ class MathMetricRetriever:
         
         Returns organic performance metrics.
         """
-        endpoint = "/math/organic/executive-summary"
+        endpoint = "/organic/executive-summary"
         params = {
             "date_start": date_start,
             "date_end": date_end
@@ -134,7 +134,7 @@ class MathMetricRetriever:
         
         Returns inventory data, optionally filtered by ASIN.
         """
-        endpoint = "/math/inventory/metrics/executive-summary"
+        endpoint = "/inventory/metrics/executive-summary"
         params = {
             "date_start": date_start,
             "date_end": date_end
@@ -159,7 +159,7 @@ class MathMetricRetriever:
         
         Returns attribution metrics.
         """
-        endpoint = "/math/attribution/executive-summary"
+        endpoint = "/attribution/executive-summary"
         params = {
             "date_start": date_start,
             "date_end": date_end
@@ -183,7 +183,7 @@ class MathMetricRetriever:
 
         Returns total summary metrics across all areas, optionally filtered by ASIN.
         """
-        endpoint = "/math/total/executive-summary"
+        endpoint = "/total/executive-summary"
         params = {
             "date_start": date_start,
             "date_end": date_end
@@ -225,7 +225,7 @@ class MathMetricRetriever:
             asin: Amazon Standard Identification Number to filter by
             search_query: Partial match filter for search terms (case-insensitive)
         """
-        endpoint = "/math/combined/ads_organic_keywords"
+        endpoint = "/combined/ads_organic_keywords"
         params = {
             "date_start": date_start,
             "date_end": date_end
@@ -277,7 +277,7 @@ class MathMetricRetriever:
             country: Country/marketplace code to filter by (e.g., US, UK, DE)
             asin: Amazon Standard Identification Number to filter by
         """
-        endpoint = "/math/ads/non-optimal-spends"
+        endpoint = "/ads/non-optimal-spends"
         params = {
             "date_start": date_start,
             "date_end": date_end

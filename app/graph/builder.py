@@ -10,8 +10,10 @@ from app.graph.nodes import (
     metrics_query_handler_node,
     insight_query_handler_node,
     asin_product_handler_node,
+    dashboard_load_handler_node,
     hardcoded_response_node,
-    other_handler_node
+    other_handler_node,
+    async_image_enricher_node
 )
 
 
@@ -23,6 +25,7 @@ def route_by_question_type(state: AgentState) -> str:
         "metrics_query": "metrics_query_handler",
         "insight_query": "insight_query_handler",
         "asin_product": "asin_product_handler",
+        "dashboard_load": "dashboard_load_handler",
         "hardcoded": "hardcoded_response",
         "other_query": "other_handler"
     }
@@ -55,8 +58,12 @@ def create_chatbot_graph():
     workflow.add_node("metrics_query_handler", metrics_query_handler_node)
     workflow.add_node("insight_query_handler", insight_query_handler_node)
     workflow.add_node("asin_product_handler", asin_product_handler_node)
+    workflow.add_node("dashboard_load_handler", dashboard_load_handler_node)
     workflow.add_node("hardcoded_response", hardcoded_response_node)
     workflow.add_node("other_handler", other_handler_node)
+    
+    # Add enrichment node
+    workflow.add_node("async_image_enricher", async_image_enricher_node)
     
     # Set entry point
     workflow.set_entry_point("label_normalizer")
@@ -77,15 +84,20 @@ def create_chatbot_graph():
             "metrics_query_handler": "metrics_query_handler",
             "insight_query_handler": "insight_query_handler",
             "asin_product_handler": "asin_product_handler",
+            "dashboard_load_handler": "dashboard_load_handler",
             "hardcoded_response": "hardcoded_response",
             "other_handler": "other_handler"
         }
     )
     
-    # All handlers end the flow
+    # ASIN handler routes to image enricher, then to END
+    workflow.add_edge("asin_product_handler", "async_image_enricher")
+    workflow.add_edge("async_image_enricher", END)
+    
+    # Other handlers end the flow directly
     workflow.add_edge("metrics_query_handler", END)
     workflow.add_edge("insight_query_handler", END)
-    workflow.add_edge("asin_product_handler", END)
+    workflow.add_edge("dashboard_load_handler", END)
     workflow.add_edge("hardcoded_response", END)
     workflow.add_edge("other_handler", END)
     

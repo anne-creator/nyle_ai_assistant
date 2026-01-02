@@ -21,6 +21,9 @@ class AgentState(TypedDict):
     messages: Annotated[List[BaseMessage], add_messages]
     question: str
     
+    # ========== HTTP Interaction Context ==========
+    interaction_type: Optional[str]  # e.g., "dashboard_load"
+    
     # ========== HTTP Request Original Params: initialized in main.py for each message ==========
     _http_date_start: Optional[str]      # Can be any string from frontend
     _http_date_end: Optional[str]        # Can be any string from frontend
@@ -66,6 +69,7 @@ class AgentState(TypedDict):
         "metrics_query",
         "insight_query",
         "asin_product",
+        "dashboard_load",
         "hardcoded",
         "other_query"
     ]
@@ -80,6 +84,9 @@ class AgentState(TypedDict):
     requested_metrics: Optional[List[str]]
     metric_data: Optional[dict]
     comparison_metric_data: Optional[dict]
+    
+    # ========== Product Image Data ==========
+    image_url: Optional[str]  # Product image URL for ASIN queries
     
     # ========== Final Output ==========
     response: str
