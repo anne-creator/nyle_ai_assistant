@@ -244,10 +244,8 @@ async def _get_optimization_potential(
     """
     Get optimization potential by calling non_optimal_spends and optimal_goals APIs.
     
-    Returns formatted text like:
-    "Your store also has optimization potential:
-    You could have made $48,290 (net profit gain) from Oct 1 to Oct 30, 2025,
-    if you had adjusted your ACOS to 20% and Ad TOS IS to 7.8% at Oct 1, 2025."
+    Returns formatted text with all non-zero optimal goal metrics.
+    API returns: acos, ad_tos_is, total_sales, ad_spend, ad_sales, net_profit
     """
     try:
         # Fetch both APIs in parallel
@@ -267,28 +265,60 @@ async def _get_optimization_potential(
             logger.warning(f"Failed to get optimal_goals: {optimal}")
             return ""  # Can't generate optimization text without optimal goals
         
-        # Extract values
+        # Extract potential gain
         potential_gain = non_optimal if isinstance(non_optimal, (int, float)) else 0
-        optimal_acos = optimal.get("acos", 0) if isinstance(optimal, dict) else 0
-        optimal_ad_tos_is = optimal.get("ad_tos_is", 0) if isinstance(optimal, dict) else 0
         
-        # Format Ad TOS IS (if it's a decimal like 0.078, convert to percentage)
-        if optimal_ad_tos_is < 1:
-            optimal_ad_tos_is = optimal_ad_tos_is * 100
+        if not isinstance(optimal, dict) or potential_gain <= 0:
+            return ""
+        
+        # Build list of non-zero/non-null optimal goal adjustments
+        # Metric definitions: (api_key, display_name, is_percentage, needs_multiply_100)
+        metric_definitions = [
+            ("acos", "ACOS", True, False),  # Already in % form
+            ("ad_tos_is", "Ad TOS IS", True, True),  # Decimal, needs *100
+            ("total_sales", "Total Sales", False, False),  # Currency
+            ("ad_spend", "Ad Spend", False, False),  # Currency
+            ("ad_sales", "Ad Sales", False, False),  # Currency
+            ("net_profit", "Net Profit", False, False),  # Currency
+        ]
+        
+        adjustments = []
+        for api_key, display_name, is_percentage, needs_multiply in metric_definitions:
+            value = optimal.get(api_key)
+            
+            # Skip None or 0 values
+            if value is None or value == 0:
+                continue
+            
+            # Format the value
+            if is_percentage:
+                if needs_multiply and value < 1:
+                    value = value * 100
+                adjustments.append(f"{display_name} to **{value:.1f}%**")
+            else:
+                adjustments.append(f"{display_name} to **${value:,.0f}**")
+        
+        # If no adjustments found, return empty
+        if not adjustments:
+            return ""
         
         # Format date range nicely
         period_range = _format_date_range(date_start, date_end)
         
-        # Build the optimization potential text
-        if potential_gain > 0:
-            optimization_text = (
-                f"**Your store also has optimization potential:**\n\n"
-                f"You could have made **${potential_gain:,.0f}** (net profit gain) from {period_range}, "
-                f"if you had adjusted your ACOS to **{optimal_acos:.1f}%** and "
-                f"Ad TOS IS to **{optimal_ad_tos_is:.1f}%** at the start of this period."
-            )
+        # Build the adjustment string (join with "and" for last item)
+        if len(adjustments) == 1:
+            adjustments_text = adjustments[0]
+        elif len(adjustments) == 2:
+            adjustments_text = f"{adjustments[0]} and {adjustments[1]}"
         else:
-            optimization_text = ""
+            adjustments_text = ", ".join(adjustments[:-1]) + f", and {adjustments[-1]}"
+        
+        # Build the optimization potential text
+        optimization_text = (
+            f"**Your store also has optimization potential:**\n\n"
+            f"You could have made **${potential_gain:,.0f}** (net profit gain) from {period_range}, "
+            f"if you had adjusted your {adjustments_text} at the start of this period."
+        )
         
         return optimization_text
         
