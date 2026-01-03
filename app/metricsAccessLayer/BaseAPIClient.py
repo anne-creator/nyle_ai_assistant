@@ -11,34 +11,20 @@ logger = logging.getLogger(__name__)
 class BaseAPIClient:
     """
     Base HTTP client with environment-aware URL selection.
-    
-    Supports both Math backend (/math/v1/*) and Amazon backend (/amazon/v1/*) APIs.
     """
     
-    def __init__(self, api_prefix: str = "/math/v1"):
-        """
-        Initialize API client with specific API prefix.
-        
-        Args:
-            api_prefix: API path prefix (e.g., "/math/v1" or "/amazon/v1")
-        """
+    def __init__(self):
+        """Initialize API client."""
         settings = get_settings()
-        self.base_url = self._get_base_url(settings, api_prefix)
+        self.base_url = self._get_base_url(settings)
         self.timeout = 30.0
     
-    def _get_base_url(self, settings, api_prefix: str) -> str:
-        """
-        Get base URL based on environment. Local and prod use prod URL.
-        
-        Args:
-            api_prefix: API path prefix to append to base URL
-        """
+    def _get_base_url(self, settings) -> str:
+        """Get base URL based on environment. Local and prod use prod URL."""
         if settings.environment == "dev":
-            base = settings.dev_base_url
+            return settings.dev_base_url
         else:
-            base = settings.prod_base_url
-        
-        return f"{base}{api_prefix}"
+            return settings.prod_base_url
     
     def _get_headers(self) -> dict:
         """Get headers with JWT from context."""

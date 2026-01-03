@@ -41,7 +41,7 @@ class MathMetricRetriever:
         """Initialize only once."""
         if self._initialized:
             return
-        self.client = BaseAPIClient(api_prefix="/math/v1/math")
+        self.client = BaseAPIClient()
         self._initialized = True
     
     # ========== API 1: Ads Executive Summary ==========
@@ -58,7 +58,7 @@ class MathMetricRetriever:
         
         Returns advertising metrics summary, optionally filtered by ASIN.
         """
-        endpoint = "/ads/executive-summary"
+        endpoint = "/math/v1/math/ads/executive-summary"
         params = {
             "date_start": date_start,
             "date_end": date_end,
@@ -85,7 +85,7 @@ class MathMetricRetriever:
         
         Returns CFO/financial metrics, optionally filtered by ASIN.
         """
-        endpoint = "/cfo/executive-summary"
+        endpoint = "/math/v1/math/cfo/executive-summary"
         params = {
             "date_start": date_start,
             "date_end": date_end
@@ -110,7 +110,7 @@ class MathMetricRetriever:
         
         Returns organic performance metrics.
         """
-        endpoint = "/organic/executive-summary"
+        endpoint = "/math/v1/math/organic/executive-summary"
         params = {
             "date_start": date_start,
             "date_end": date_end
@@ -134,7 +134,7 @@ class MathMetricRetriever:
         
         Returns inventory data, optionally filtered by ASIN.
         """
-        endpoint = "/inventory/metrics/executive-summary"
+        endpoint = "/math/v1/math/inventory/metrics/executive-summary"
         params = {
             "date_start": date_start,
             "date_end": date_end
@@ -159,7 +159,7 @@ class MathMetricRetriever:
         
         Returns attribution metrics.
         """
-        endpoint = "/attribution/executive-summary"
+        endpoint = "/math/v1/math/attribution/executive-summary"
         params = {
             "date_start": date_start,
             "date_end": date_end
@@ -183,7 +183,7 @@ class MathMetricRetriever:
 
         Returns total summary metrics across all areas, optionally filtered by ASIN.
         """
-        endpoint = "/total/executive-summary"
+        endpoint = "/math/v1/math/total/executive-summary"
         params = {
             "date_start": date_start,
             "date_end": date_end
@@ -225,7 +225,7 @@ class MathMetricRetriever:
             asin: Amazon Standard Identification Number to filter by
             search_query: Partial match filter for search terms (case-insensitive)
         """
-        endpoint = "/combined/ads_organic_keywords"
+        endpoint = "/math/v1/math/combined/ads_organic_keywords"
         params = {
             "date_start": date_start,
             "date_end": date_end
@@ -277,7 +277,7 @@ class MathMetricRetriever:
             country: Country/marketplace code to filter by (e.g., US, UK, DE)
             asin: Amazon Standard Identification Number to filter by
         """
-        endpoint = "/ads/non-optimal-spends"
+        endpoint = "/math/v1/math/ads/non-optimal-spends"
         params = {
             "date_start": date_start,
             "date_end": date_end
@@ -296,6 +296,155 @@ class MathMetricRetriever:
         logger.info(f"Calling {endpoint}")
         # This endpoint is slow (~30s), use extended timeout
         return await self.client.get(endpoint, params, timeout=60.0)
+
+    # ========== API 9: Daily ACOS ==========
+    async def get_daily_acos(
+        self,
+        date_start: str,
+        date_end: str,
+        timespan: str = "day",
+        asin: Optional[str] = None
+    ) -> dict:
+        """
+        GET /ads/acos
+        
+        Returns daily ACOS values for trend analysis.
+        """
+        endpoint = "/math/v1/math/ads/acos"
+        params = {
+            "date_start": date_start,
+            "date_end": date_end,
+            "timespan": timespan
+        }
+        if asin:
+            params["asin"] = asin
+        
+        logger.info(f"Calling {endpoint}")
+        return await self.client.get(endpoint, params)
+
+    # ========== API 10: Daily Ad TOS IS ==========
+    async def get_daily_ad_tos_is(
+        self,
+        date_start: str,
+        date_end: str,
+        timespan: str = "day",
+        asin: Optional[str] = None
+    ) -> dict:
+        """
+        GET /ads/tos-is
+        
+        Returns daily Top of Search Impression Share values.
+        """
+        endpoint = "/math/v1/math/ads/tos-is"
+        params = {
+            "date_start": date_start,
+            "date_end": date_end,
+            "timespan": timespan
+        }
+        if asin:
+            params["asin"] = asin
+        
+        logger.info(f"Calling {endpoint}")
+        return await self.client.get(endpoint, params)
+
+    # ========== API 11: Daily Total Sales ==========
+    async def get_daily_total_sales(
+        self,
+        date_start: str,
+        date_end: str,
+        timespan: str = "day",
+        asin: Optional[str] = None
+    ) -> dict:
+        """
+        GET /total/sales
+        
+        Returns daily total sales values.
+        """
+        endpoint = "/math/v1/math/total/sales"
+        params = {
+            "date_start": date_start,
+            "date_end": date_end,
+            "timespan": timespan
+        }
+        if asin:
+            params["asin"] = asin
+        
+        logger.info(f"Calling {endpoint}")
+        return await self.client.get(endpoint, params)
+
+    # ========== API 12: Daily Net Profit ==========
+    async def get_daily_net_profit(
+        self,
+        date_start: str,
+        date_end: str,
+        timespan: str = "day",
+        asin: Optional[str] = None
+    ) -> dict:
+        """
+        GET /cfo/net-profit
+        
+        Returns daily net profit values.
+        """
+        endpoint = "/math/v1/math/cfo/net-profit"
+        params = {
+            "date_start": date_start,
+            "date_end": date_end,
+            "timespan": timespan
+        }
+        if asin:
+            params["asin"] = asin
+        
+        logger.info(f"Calling {endpoint}")
+        return await self.client.get(endpoint, params)
+
+    # ========== API 13: Daily ROI ==========
+    async def get_daily_roi(
+        self,
+        date_start: str,
+        date_end: str,
+        timespan: str = "day",
+        asin: Optional[str] = None
+    ) -> dict:
+        """
+        GET /cfo/roi
+        
+        Returns daily ROI values.
+        """
+        endpoint = "/math/v1/math/cfo/roi"
+        params = {
+            "date_start": date_start,
+            "date_end": date_end,
+            "timespan": timespan
+        }
+        if asin:
+            params["asin"] = asin
+        
+        logger.info(f"Calling {endpoint}")
+        return await self.client.get(endpoint, params)
+
+    # ========== API 14: Optimal Goals ==========
+    async def get_optimal_goals(
+        self,
+        date_start: str,
+        date_end: str,
+        asin: Optional[str] = None
+    ) -> dict:
+        """
+        GET /v1/goals/optimal
+        
+        Returns optimal goal values for the period.
+        Response includes: acos, ad_tos_is, total_sales, ad_spend, ad_sales, net_profit
+        """
+        endpoint = "/math/v1/goals/optimal"
+        params = {
+            "date_start": date_start,
+            "date_end": date_end
+        }
+        if asin:
+            params["asin"] = asin
+        
+        logger.info(f"Calling {endpoint}")
+        return await self.client.get(endpoint, params)
 
 
 # ========== Singleton Instance - Use this everywhere ==========

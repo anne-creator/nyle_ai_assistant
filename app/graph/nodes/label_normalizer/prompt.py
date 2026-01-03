@@ -16,6 +16,13 @@ LABEL_NORMALIZER_PROMPT = """You are a label extractor that extracts date labels
 ### Past X Days (Predefined Counts)
 - past_7_days, past_14_days, past_30_days, past_60_days, past_90_days, past_180_days
 
+**IMPORTANT: "Past X Weeks" = Convert to Days (SINGLE PERIOD)**
+- "past 2 weeks" = "past week" = last 14 days → past_14_days ✅
+- "past 3 weeks" = last 21 days → past_days + custom_days_count=21
+- "past 4 weeks" = last 28 days → past_days + custom_days_count=28
+- These are SINGLE time periods (date_start = X*7 days ago, date_end = today)
+- NOT comparisons between separate weeks!
+
 ### Past X Days (Custom Counts)
 - past_days → ONLY for non-standard counts (not 7/14/30/60/90/180)
   - Example: "past 9 days" → "past_days" + custom_days_count=9
@@ -246,6 +253,25 @@ Output:
 - compare_date_end_label: null
 - asin: null
 
+**Example 10: Past 2 weeks = Single 14-day period (NO comparison)**
+Question: "What happened to my performance over the past 2 weeks"
+Output:
+- date_start_label: "past_14_days"  ← 2 weeks = 14 days (SINGLE period)
+- date_end_label: "past_14_days"
+- compare_date_start_label: null  ← NOT a comparison!
+- compare_date_end_label: null
+- asin: null
+
+**Example 11: Past 3 weeks = Single 21-day period (NO comparison)**
+Question: "Show me past 3 weeks trends"
+Output:
+- date_start_label: "past_days"  ← 3 weeks = 21 days (custom count)
+- date_end_label: "past_days"
+- custom_days_count: 21
+- compare_date_start_label: null  ← NOT a comparison!
+- compare_date_end_label: null
+- asin: null
+
 ---
 
 ## Previous Evaluation Feedback
@@ -265,8 +291,9 @@ Extract labels and ASIN now. CRITICAL REMINDERS:
 5. **compare_date_start_label MUST equal compare_date_end_label** for comparison period
 6. **PRIMARY = more recent period, COMPARISON = earlier period** (ignore word order)
 7. **Set comparison labels to null if NO comparison keywords** (compare/vs/versus/to/against) in question
-8. Use specific labels over generic (past_7_days > past_days)
-9. Extract ASIN if present (10-char alphanumeric)
-10. Explicit dates: Use {current_year} if no year given
+8. **"Past X weeks" = SINGLE period in days** ("past 2 weeks" → past_14_days, NOT a comparison!)
+9. Use specific labels over generic (past_7_days > past_days)
+10. Extract ASIN if present (10-char alphanumeric)
+11. Explicit dates: Use {current_year} if no year given
 {feedback_reminder}
 """
