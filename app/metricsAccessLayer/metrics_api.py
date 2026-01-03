@@ -41,7 +41,7 @@ class MathMetricRetriever:
         """Initialize only once."""
         if self._initialized:
             return
-        self.client = BaseAPIClient(api_prefix="/math/v1/math")
+        self.client = BaseAPIClient()
         self._initialized = True
     
     # ========== API 1: Ads Executive Summary ==========
@@ -58,7 +58,7 @@ class MathMetricRetriever:
         
         Returns advertising metrics summary, optionally filtered by ASIN.
         """
-        endpoint = "/ads/executive-summary"
+        endpoint = "/math/v1/math/ads/executive-summary"
         params = {
             "date_start": date_start,
             "date_end": date_end,
@@ -85,7 +85,7 @@ class MathMetricRetriever:
         
         Returns CFO/financial metrics, optionally filtered by ASIN.
         """
-        endpoint = "/cfo/executive-summary"
+        endpoint = "/math/v1/math/cfo/executive-summary"
         params = {
             "date_start": date_start,
             "date_end": date_end
@@ -110,7 +110,7 @@ class MathMetricRetriever:
         
         Returns organic performance metrics.
         """
-        endpoint = "/organic/executive-summary"
+        endpoint = "/math/v1/math/organic/executive-summary"
         params = {
             "date_start": date_start,
             "date_end": date_end
@@ -134,7 +134,7 @@ class MathMetricRetriever:
         
         Returns inventory data, optionally filtered by ASIN.
         """
-        endpoint = "/inventory/metrics/executive-summary"
+        endpoint = "/math/v1/math/inventory/metrics/executive-summary"
         params = {
             "date_start": date_start,
             "date_end": date_end
@@ -159,7 +159,7 @@ class MathMetricRetriever:
         
         Returns attribution metrics.
         """
-        endpoint = "/attribution/executive-summary"
+        endpoint = "/math/v1/math/attribution/executive-summary"
         params = {
             "date_start": date_start,
             "date_end": date_end
@@ -183,7 +183,7 @@ class MathMetricRetriever:
 
         Returns total summary metrics across all areas, optionally filtered by ASIN.
         """
-        endpoint = "/total/executive-summary"
+        endpoint = "/math/v1/math/total/executive-summary"
         params = {
             "date_start": date_start,
             "date_end": date_end
@@ -225,7 +225,7 @@ class MathMetricRetriever:
             asin: Amazon Standard Identification Number to filter by
             search_query: Partial match filter for search terms (case-insensitive)
         """
-        endpoint = "/combined/ads_organic_keywords"
+        endpoint = "/math/v1/math/combined/ads_organic_keywords"
         params = {
             "date_start": date_start,
             "date_end": date_end
@@ -277,7 +277,7 @@ class MathMetricRetriever:
             country: Country/marketplace code to filter by (e.g., US, UK, DE)
             asin: Amazon Standard Identification Number to filter by
         """
-        endpoint = "/ads/non-optimal-spends"
+        endpoint = "/math/v1/math/ads/non-optimal-spends"
         params = {
             "date_start": date_start,
             "date_end": date_end
@@ -310,7 +310,7 @@ class MathMetricRetriever:
         
         Returns daily ACOS values for trend analysis.
         """
-        endpoint = "/ads/acos"
+        endpoint = "/math/v1/math/ads/acos"
         params = {
             "date_start": date_start,
             "date_end": date_end,
@@ -335,7 +335,7 @@ class MathMetricRetriever:
         
         Returns daily Top of Search Impression Share values.
         """
-        endpoint = "/ads/tos-is"
+        endpoint = "/math/v1/math/ads/tos-is"
         params = {
             "date_start": date_start,
             "date_end": date_end,
@@ -360,7 +360,7 @@ class MathMetricRetriever:
         
         Returns daily total sales values.
         """
-        endpoint = "/total/sales"
+        endpoint = "/math/v1/math/total/sales"
         params = {
             "date_start": date_start,
             "date_end": date_end,
@@ -385,7 +385,7 @@ class MathMetricRetriever:
         
         Returns daily net profit values.
         """
-        endpoint = "/cfo/net-profit"
+        endpoint = "/math/v1/math/cfo/net-profit"
         params = {
             "date_start": date_start,
             "date_end": date_end,
@@ -410,7 +410,7 @@ class MathMetricRetriever:
         
         Returns daily ROI values.
         """
-        endpoint = "/cfo/roi"
+        endpoint = "/math/v1/math/cfo/roi"
         params = {
             "date_start": date_start,
             "date_end": date_end,
@@ -435,7 +435,7 @@ class MathMetricRetriever:
         Returns optimal goal values for the period.
         Response includes: acos, ad_tos_is, total_sales, ad_spend, ad_sales, net_profit
         """
-        endpoint = "/v1/goals/optimal"
+        endpoint = "/math/v1/goals/optimal"
         params = {
             "date_start": date_start,
             "date_end": date_end

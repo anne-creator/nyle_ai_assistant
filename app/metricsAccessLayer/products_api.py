@@ -42,7 +42,7 @@ class ProductsAPIClient:
         """Initialize only once."""
         if self._initialized:
             return
-        self.client = BaseAPIClient(api_prefix="/amazon/v1")
+        self.client = BaseAPIClient()
         self._initialized = True
     
     # ========== API: Get Ranked Products ==========
@@ -67,7 +67,7 @@ class ProductsAPIClient:
         Returns:
             List of product dicts with asin, item_name, price, brand, executive_summary
         """
-        endpoint = "/products/own"
+        endpoint = "/amazon/v1/products/own"
         params = {
             "offset": offset,
             "limit": limit,
@@ -96,7 +96,7 @@ class ProductsAPIClient:
             - executive_summary: metrics dict
             - link: Amazon product page URL
         """
-        endpoint = f"/products/own/{asin}"
+        endpoint = f"/amazon/v1/products/own/{asin}"
         logger.info(f"Fetching product details for ASIN: {asin}")
         return await self.client.get(endpoint)
 
