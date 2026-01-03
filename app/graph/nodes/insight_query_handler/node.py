@@ -9,8 +9,10 @@ from app.metricsAccessLayer import metrics_api
 from app.context import set_jwt_token_for_task
 from app.graph.nodes.insight_query_handler.prompt import (
     INSIGHT_INTENT_PROMPT,
-    COMPARISON_EXPLANATION_PROMPT
+    COMPARISON_EXPLANATION_PROMPT,
+    TREND_ANALYSIS_PROMPT
 )
+from app.utils.trend_metrics_fetcher import fetch_trend_metrics
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +31,7 @@ def _classify_insight_intent(question: str) -> str:
     intent = response.content.strip().lower()
     
     # Validate intent
-    if intent not in ["net_profit_loss", "comparison"]:
+    if intent not in ["net_profit_loss", "comparison", "trend_analysis"]:
         logger.warning(f"Invalid insight intent '{intent}', defaulting to comparison")
         intent = "comparison"
     
@@ -200,6 +202,101 @@ Comparison period ({data['period_b_start']} to {data['period_b_end']}):
     return response.content.strip()
 
 
+def _generate_trend_analysis_response(data: dict, question: str) -> str:
+    """
+    Generate LLM analysis for trend data.
+    
+    Uses TREND_ANALYSIS_PROMPT to identify trends in net profit,
+    correlate with other metrics, and explain root causes.
+    """
+    settings = get_settings()
+    llm = ChatOpenAI(
+        model=settings.openai_model,
+        temperature=0.3,
+        api_key=settings.openai_api_key
+    )
+    
+    prompt = f"""{TREND_ANALYSIS_PROMPT}
+
+**Daily Metrics Data:**
+{data['text']}
+
+**Summary Statistics:**
+- Net Profit: Sum=${data['stats']['profit']['sum']:,}, Avg=${data['stats']['profit']['avg']:,}, Max=${data['stats']['profit']['max']:,}, Min=${data['stats']['profit']['min']:,}
+- Total Sales: Sum=${data['stats']['sales']['sum']:,}, Avg=${data['stats']['sales']['avg']:,}
+- ACOS Avg: {data['stats']['acos_avg']:.2f}%
+- Ad TOS IS Avg: {data['stats']['ad_tos_is_avg']:.2f}%
+- ROI Avg: {data['stats']['roi_avg']:.2f}%
+
+**User Question:** {question}
+
+**Analysis:**"""
+    
+    response = llm.invoke(prompt)
+    return response.content.strip()
+
+
+async def _get_optimization_potential(
+    date_start: str, 
+    date_end: str, 
+    asin: str = None
+) -> str:
+    """
+    Get optimization potential by calling non_optimal_spends and optimal_goals APIs.
+    
+    Returns formatted text like:
+    "Your store also has optimization potential:
+    You could have made $48,290 (net profit gain) from Oct 1 to Oct 30, 2025,
+    if you had adjusted your ACOS to 20% and Ad TOS IS to 7.8% at Oct 1, 2025."
+    """
+    try:
+        # Fetch both APIs in parallel
+        import asyncio
+        non_optimal, optimal = await asyncio.gather(
+            metrics_api.get_non_optimal_spends(date_start, date_end, asin=asin),
+            metrics_api.get_optimal_goals(date_start, date_end, asin=asin),
+            return_exceptions=True
+        )
+        
+        # Handle errors gracefully
+        if isinstance(non_optimal, Exception):
+            logger.warning(f"Failed to get non_optimal_spends: {non_optimal}")
+            non_optimal = 0
+        
+        if isinstance(optimal, Exception):
+            logger.warning(f"Failed to get optimal_goals: {optimal}")
+            return ""  # Can't generate optimization text without optimal goals
+        
+        # Extract values
+        potential_gain = non_optimal if isinstance(non_optimal, (int, float)) else 0
+        optimal_acos = optimal.get("acos", 0) if isinstance(optimal, dict) else 0
+        optimal_ad_tos_is = optimal.get("ad_tos_is", 0) if isinstance(optimal, dict) else 0
+        
+        # Format Ad TOS IS (if it's a decimal like 0.078, convert to percentage)
+        if optimal_ad_tos_is < 1:
+            optimal_ad_tos_is = optimal_ad_tos_is * 100
+        
+        # Format date range nicely
+        period_range = _format_date_range(date_start, date_end)
+        
+        # Build the optimization potential text
+        if potential_gain > 0:
+            optimization_text = (
+                f"**Your store also has optimization potential:**\n\n"
+                f"You could have made **${potential_gain:,.0f}** (net profit gain) from {period_range}, "
+                f"if you had adjusted your ACOS to **{optimal_acos:.1f}%** and "
+                f"Ad TOS IS to **{optimal_ad_tos_is:.1f}%** at the start of this period."
+            )
+        else:
+            optimization_text = ""
+        
+        return optimization_text
+        
+    except Exception as e:
+        logger.warning(f"Error getting optimization potential: {e}")
+        return ""
+
+
 async def insight_query_handler_node(state: AgentState) -> AgentState:
     """
     Handler for insight_query type questions.
@@ -224,6 +321,27 @@ async def insight_query_handler_node(state: AgentState) -> AgentState:
     if insight_intent == "net_profit_loss":
         data = await _execute_net_profit_loss_pipeline(state)
         response = _format_net_profit_response(data)
+    elif insight_intent == "trend_analysis":
+        # Use reusable trend metrics fetcher tool
+        date_start = state["date_start"]
+        date_end = state["date_end"]
+        asin = state.get("asin")
+        
+        data = await fetch_trend_metrics(
+            date_start,
+            date_end,
+            timespan="day",
+            asin=asin
+        )
+        
+        # Generate trend analysis from LLM
+        trend_response = _generate_trend_analysis_response(data, question)
+        
+        # Fetch optimization potential data
+        optimization_text = await _get_optimization_potential(date_start, date_end, asin)
+        
+        # Combine trend analysis + optimization potential
+        response = trend_response + "\n\n" + optimization_text
     else:  # comparison
         data = await _execute_comparison_pipeline(state)
         response = _generate_comparison_explanation(data, question)

@@ -297,6 +297,155 @@ class MathMetricRetriever:
         # This endpoint is slow (~30s), use extended timeout
         return await self.client.get(endpoint, params, timeout=60.0)
 
+    # ========== API 9: Daily ACOS ==========
+    async def get_daily_acos(
+        self,
+        date_start: str,
+        date_end: str,
+        timespan: str = "day",
+        asin: Optional[str] = None
+    ) -> dict:
+        """
+        GET /ads/acos
+        
+        Returns daily ACOS values for trend analysis.
+        """
+        endpoint = "/ads/acos"
+        params = {
+            "date_start": date_start,
+            "date_end": date_end,
+            "timespan": timespan
+        }
+        if asin:
+            params["asin"] = asin
+        
+        logger.info(f"Calling {endpoint}")
+        return await self.client.get(endpoint, params)
+
+    # ========== API 10: Daily Ad TOS IS ==========
+    async def get_daily_ad_tos_is(
+        self,
+        date_start: str,
+        date_end: str,
+        timespan: str = "day",
+        asin: Optional[str] = None
+    ) -> dict:
+        """
+        GET /ads/tos-is
+        
+        Returns daily Top of Search Impression Share values.
+        """
+        endpoint = "/ads/tos-is"
+        params = {
+            "date_start": date_start,
+            "date_end": date_end,
+            "timespan": timespan
+        }
+        if asin:
+            params["asin"] = asin
+        
+        logger.info(f"Calling {endpoint}")
+        return await self.client.get(endpoint, params)
+
+    # ========== API 11: Daily Total Sales ==========
+    async def get_daily_total_sales(
+        self,
+        date_start: str,
+        date_end: str,
+        timespan: str = "day",
+        asin: Optional[str] = None
+    ) -> dict:
+        """
+        GET /total/sales
+        
+        Returns daily total sales values.
+        """
+        endpoint = "/total/sales"
+        params = {
+            "date_start": date_start,
+            "date_end": date_end,
+            "timespan": timespan
+        }
+        if asin:
+            params["asin"] = asin
+        
+        logger.info(f"Calling {endpoint}")
+        return await self.client.get(endpoint, params)
+
+    # ========== API 12: Daily Net Profit ==========
+    async def get_daily_net_profit(
+        self,
+        date_start: str,
+        date_end: str,
+        timespan: str = "day",
+        asin: Optional[str] = None
+    ) -> dict:
+        """
+        GET /cfo/net-profit
+        
+        Returns daily net profit values.
+        """
+        endpoint = "/cfo/net-profit"
+        params = {
+            "date_start": date_start,
+            "date_end": date_end,
+            "timespan": timespan
+        }
+        if asin:
+            params["asin"] = asin
+        
+        logger.info(f"Calling {endpoint}")
+        return await self.client.get(endpoint, params)
+
+    # ========== API 13: Daily ROI ==========
+    async def get_daily_roi(
+        self,
+        date_start: str,
+        date_end: str,
+        timespan: str = "day",
+        asin: Optional[str] = None
+    ) -> dict:
+        """
+        GET /cfo/roi
+        
+        Returns daily ROI values.
+        """
+        endpoint = "/cfo/roi"
+        params = {
+            "date_start": date_start,
+            "date_end": date_end,
+            "timespan": timespan
+        }
+        if asin:
+            params["asin"] = asin
+        
+        logger.info(f"Calling {endpoint}")
+        return await self.client.get(endpoint, params)
+
+    # ========== API 14: Optimal Goals ==========
+    async def get_optimal_goals(
+        self,
+        date_start: str,
+        date_end: str,
+        asin: Optional[str] = None
+    ) -> dict:
+        """
+        GET /v1/goals/optimal
+        
+        Returns optimal goal values for the period.
+        Response includes: acos, ad_tos_is, total_sales, ad_spend, ad_sales, net_profit
+        """
+        endpoint = "/v1/goals/optimal"
+        params = {
+            "date_start": date_start,
+            "date_end": date_end
+        }
+        if asin:
+            params["asin"] = asin
+        
+        logger.info(f"Calling {endpoint}")
+        return await self.client.get(endpoint, params)
+
 
 # ========== Singleton Instance - Use this everywhere ==========
 metrics_api = MathMetricRetriever()

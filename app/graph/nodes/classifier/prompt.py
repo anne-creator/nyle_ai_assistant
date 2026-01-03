@@ -27,8 +27,16 @@ INSIGHT_KEYWORDS = [
     "losses",
     "why",
     "insights",
+    "insight",
+    "trend",
+    "trends",
+    "trending",
+    "analyze",
+    "analysis",
+    "what happened",
     "dropped",
     "decreased",
+    "increased",
 ]
 
 # AI prompt for distinguishing metrics_query vs other_query
