@@ -23,7 +23,8 @@ def _classify_insight_intent(question: str) -> str:
     llm = ChatOpenAI(
         model=settings.openai_model,
         temperature=0,
-        api_key=settings.openai_api_key
+        api_key=settings.openai_api_key,
+        streaming=True
     )
     
     prompt = INSIGHT_INTENT_PROMPT.format(question=question)
@@ -202,7 +203,8 @@ def _generate_comparison_explanation(data: dict, question: str) -> str:
     llm = ChatOpenAI(
         model=settings.openai_model,
         temperature=0.3,
-        api_key=settings.openai_api_key
+        api_key=settings.openai_api_key,
+        streaming=True
     )
     
     prompt = f"""{COMPARISON_EXPLANATION_PROMPT}
@@ -233,7 +235,8 @@ def _generate_trend_analysis_response(data: dict, question: str) -> str:
     llm = ChatOpenAI(
         model=settings.openai_model,
         temperature=0.3,
-        api_key=settings.openai_api_key
+        api_key=settings.openai_api_key,
+        streaming=True
     )
     
     prompt = f"""{TREND_ANALYSIS_PROMPT}

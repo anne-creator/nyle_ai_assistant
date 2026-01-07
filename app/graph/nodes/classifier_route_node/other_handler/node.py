@@ -29,7 +29,8 @@ def other_handler_node(state: AgentState) -> AgentState:
     llm = ChatOpenAI(
         model=settings.openai_model,
         temperature=0.3,
-        api_key=settings.openai_api_key
+        api_key=settings.openai_api_key,
+        streaming=True
     )
 
     # Sub-classify the query type

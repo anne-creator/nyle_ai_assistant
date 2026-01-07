@@ -51,7 +51,8 @@ async def asin_product_handler_node(state: AgentState) -> AgentState:
     llm = ChatOpenAI(
         model=settings.openai_model,
         temperature=0,
-        api_key=settings.openai_api_key
+        api_key=settings.openai_api_key,
+        streaming=True
     )
     
     # Create agent with ASIN-aware tools
