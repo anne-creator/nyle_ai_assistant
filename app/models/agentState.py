@@ -78,6 +78,7 @@ class AgentState(TypedDict):
     insight_intent: Optional[Literal[
         "net_profit_loss",
         "comparison",
+        "trend_analysis",
     ]]
     
     # ========== Handler Processing ==========

@@ -9,17 +9,14 @@ Examples:
 - "How much did I lose on ads?"
 - "What's my non-optimal spend?"
 
-2. **comparison** - Questions asking how a specific metric or overall performance changed between TWO distinct periods/dates. Uses words like "change", "changed", "from X to Y" where X and Y are two distinct time points.
+2. **comparison** - Explicit comparison between TWO distinct periods (uses "vs", "compared to", "versus")
 Examples:
 - "Compare sales performance in August vs September"
 - "How did sales change from Q1 to Q2?"
 - "August compared to September"
 - "This month versus last month"
-- "How did my Ad TOS IS changed from Oct 15 to Oct 30" (two distinct dates)
-- "How did ACOS change from Oct 1 to Oct 30" (asking about change between two dates)
-- "What changed from last week to this week"
 
-3. **trend_analysis** - Questions asking about trends, patterns, or what happened over a SINGLE period (day-by-day analysis within one period). Uses words like "trend", "analyze", "what happened", "insights" over a period range.
+3. **trend_analysis** - Analyze performance trends or what happened over a SINGLE period (day-by-day analysis)
 Examples:
 - "Analyze performance trends from Oct 1-30"
 - "Give me insights from Oct 1 to Oct 30"
@@ -29,10 +26,7 @@ Examples:
 - "Show me trends for last month"
 - "How did I perform over the past week"
 
-**Critical Distinction:**
-- **comparison**: "How did [metric] change from [date A] to [date B]?" → Two distinct periods being compared
-- **trend_analysis**: "What happened/trended from [date A] to [date B]?" → One period analyzed day-by-day
-- If the question asks "How did [specific metric] change from X to Y?", it's ALWAYS comparison (type 2)
+**Important:** If the question asks about a single period (even relative like "past 2 weeks"), use trend_analysis. Only use comparison if TWO distinct periods are explicitly mentioned.
 
 **Question:** {question}
 
