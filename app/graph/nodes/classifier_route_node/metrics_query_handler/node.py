@@ -6,8 +6,8 @@ import logging
 
 from app.models.agentState import AgentState
 from app.config import get_settings
-from app.graph.nodes.metrics_query_handler.prompt import METRICS_QUERY_SYSTEM_PROMPT
-from app.graph.nodes.metrics_query_handler.simple_metrics_tool import get_simple_metrics
+from app.graph.nodes.classifier_route_node.metrics_query_handler.prompt import METRICS_QUERY_SYSTEM_PROMPT
+from app.graph.nodes.classifier_route_node.metrics_query_handler.simple_metrics_tool import get_simple_metrics
 from app.metricsAccessLayer import metrics_api
 from app.context import set_jwt_token_for_task
 

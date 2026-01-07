@@ -7,7 +7,7 @@ from app.models.agentState import AgentState
 from app.config import get_settings
 from app.metricsAccessLayer import metrics_api
 from app.context import set_jwt_token_for_task
-from app.graph.nodes.insight_query_handler.prompt import (
+from app.graph.nodes.classifier_route_node.insight_query_handler.prompt import (
     INSIGHT_INTENT_PROMPT,
     COMPARISON_EXPLANATION_PROMPT,
     TREND_ANALYSIS_PROMPT

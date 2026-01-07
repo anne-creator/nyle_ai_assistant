@@ -9,12 +9,13 @@ Examples:
 - "How much did I lose on ads?"
 - "What's my non-optimal spend?"
 
-2. **comparison** - Explicit comparison between TWO distinct periods (uses "vs", "compared to", "versus")
+2. **comparison** - Explicit comparison the single metric or overall performancebetween TWO distinct periods (uses "vs", "compared to", "versus", "change")
 Examples:
 - "Compare sales performance in August vs September"
 - "How did sales change from Q1 to Q2?"
 - "August compared to September"
 - "This month versus last month"
+- "How did sales change from Oct 1 to Oct 30?"
 
 3. **trend_analysis** - Analyze performance trends or what happened over a SINGLE period (day-by-day analysis)
 Examples:
