@@ -49,7 +49,7 @@ class ChatRequest(BaseModel):
     sessionId: str = Field(..., description="Unique session identifier for conversation history", example="abc123")
     
     # Streaming option
-    stream: Optional[bool] = Field(True, description="Enable streaming response (word-by-word). Returns SSE stream if true, JSON if false.", example=True)
+    stream: Optional[bool] = Field(False, description="Enable streaming response (word-by-word). Returns SSE stream if true, JSON if false.", example=False)
     
     # Interaction type
     interaction_type: Optional[str] = Field(None, description="Type of interaction. Use 'dashboard_load' when user opens dashboard page.", example="dashboard_load")
