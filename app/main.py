@@ -1,9 +1,11 @@
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, AsyncIterator
 import logging
+import json
 
 from app.config import get_settings
 from app.context import RequestContext
@@ -46,6 +48,9 @@ class ChatRequest(BaseModel):
     message: str = Field(..., description="User's question or message", example="What are my total sales?")
     sessionId: str = Field(..., description="Unique session identifier for conversation history", example="abc123")
     
+    # Streaming option
+    stream: Optional[bool] = Field(False, description="Enable streaming response (word-by-word). Returns SSE stream if true, JSON if false.", example=False)
+    
     # Interaction type
     interaction_type: Optional[str] = Field(None, description="Type of interaction. Use 'dashboard_load' when user opens dashboard page.", example="dashboard_load")
 
@@ -65,9 +70,9 @@ class ChatResponse(BaseModel):
     asin: Optional[str] = Field(None, description="Product ASIN code. Present when query is about specific product.", example="B08XYZ1234")
 
 
-@app.post("/chatbot", response_model=ChatResponse, responses={
+@app.post("/chatbot", responses={
     200: {
-        "description": "Successful response",
+        "description": "Successful response. Returns JSON by default, or SSE stream if stream=true",
         "content": {
             "application/json": {
                 "examples": {
@@ -107,6 +112,12 @@ async def chatbot(
     """
     Main chatbot endpoint for Amazon seller analytics.
     
+    ## Streaming Mode
+    Set `stream: true` in request body to enable word-by-word streaming.
+    - Returns Server-Sent Events (SSE) instead of JSON
+    - Frontend should use EventSource or fetch with streaming
+    - Event types: 'token', 'metadata', 'done', 'error'
+    
     ## Usage Scenarios
     
     ### 1. Normal Queries
@@ -131,74 +142,126 @@ async def chatbot(
     
     Image URLs are from Amazon CDN. If image fails to load, gracefully hide it.
     
-    ## Response Fields
+    ## Response Fields (JSON mode)
     - `message`: Always present, contains response text (supports markdown)
     - `image_url`: Optional, only for ASIN queries
     - `asin`: Optional, only when query is about specific product
     """
     
-    logger.info(f"Received question: {request.message}")
+    logger.info(f"Received question: {request.message} (stream={request.stream})")
     
-    # Set up request context using async context manager
-    async with RequestContext(jwt_token=jwt_token, session_id=request.sessionId):
-        # Build initial state - maps HTTP request to AgentState
-        initial_state = {
-            "_jwt_token": jwt_token,  # Store JWT in state for reliable access
-            "messages": [("human", request.message)],
-            "question": request.message,
-            "interaction_type": request.interaction_type,  # NEW: Pass through interaction type
-            "_http_date_start": request.date_start,
-            "_http_date_end": request.date_end,
-            "_http_compare_date_start": request.compare_start_date,
-            "_http_compare_date_end": request.compare_end_date,
-            "_http_asin": request.ASIN,
-            "_date_start_label": None,
-            "_date_end_label": None,
-            "_compare_date_start_label": None,
-            "_compare_date_end_label": None,
-            "_explicit_date_start": None,
-            "_explicit_date_end": None,
-            "_explicit_compare_start": None,
-            "_explicit_compare_end": None,
-            "_custom_days_count": None,
-            "_custom_compare_days_count": None,
-            "date_start": None,
-            "date_end": None,
-            "compare_date_start": None,
-            "compare_date_end": None,
-            "asin": None,
-            "_normalizer_valid": None,
-            "_normalizer_retries": None,
-            "_normalizer_feedback": None,
-            "question_type": "",
-            "requested_metrics": None,
-            "metric_data": None,
-            "comparison_metric_data": None,
-            "image_url": None,  # NEW: Initialize image_url
-            "response": ""
+    # Build initial state - maps HTTP request to AgentState
+    initial_state = {
+        "_jwt_token": jwt_token,
+        "messages": [("human", request.message)],
+        "question": request.message,
+        "interaction_type": request.interaction_type,
+        "_http_date_start": request.date_start,
+        "_http_date_end": request.date_end,
+        "_http_compare_date_start": request.compare_start_date,
+        "_http_compare_date_end": request.compare_end_date,
+        "_http_asin": request.ASIN,
+        "_date_start_label": None,
+        "_date_end_label": None,
+        "_compare_date_start_label": None,
+        "_compare_date_end_label": None,
+        "_explicit_date_start": None,
+        "_explicit_date_end": None,
+        "_explicit_compare_start": None,
+        "_explicit_compare_end": None,
+        "_custom_days_count": None,
+        "_custom_compare_days_count": None,
+        "date_start": None,
+        "date_end": None,
+        "compare_date_start": None,
+        "compare_date_end": None,
+        "asin": None,
+        "_normalizer_valid": None,
+        "_normalizer_retries": None,
+        "_normalizer_feedback": None,
+        "question_type": "",
+        "requested_metrics": None,
+        "metric_data": None,
+        "comparison_metric_data": None,
+        "image_url": None,
+        "response": ""
+    }
+    
+    config = {
+        "configurable": {
+            "thread_id": request.sessionId,
+            "jwt_token": jwt_token
         }
+    }
+    
+    # Route based on streaming preference
+    if request.stream:
+        # Return streaming response
+        async def event_generator() -> AsyncIterator[str]:
+            """Generate SSE events from the graph stream."""
+            try:
+                async with RequestContext(jwt_token=jwt_token, session_id=request.sessionId):
+                    final_image_url = None
+                    final_asin = None
+                    
+                    # Stream events from the graph
+                    async for event in graph.astream_events(initial_state, config, version="v2"):
+                        kind = event.get("event")
+                        
+                        # Stream LLM tokens
+                        if kind == "on_chat_model_stream":
+                            chunk = event.get("data", {}).get("chunk")
+                            if chunk and hasattr(chunk, "content") and chunk.content:
+                                yield f"event: token\ndata: {json.dumps({'token': chunk.content})}\n\n"
+                        
+                        # Capture final state for metadata
+                        elif kind == "on_chain_end":
+                            output = event.get("data", {}).get("output", {})
+                            if isinstance(output, dict):
+                                if "image_url" in output and output["image_url"]:
+                                    final_image_url = output["image_url"]
+                                if "asin" in output and output["asin"]:
+                                    final_asin = output["asin"]
+                    
+                    # Send final metadata
+                    if final_image_url or final_asin:
+                        yield f"event: metadata\ndata: {json.dumps({'image_url': final_image_url, 'asin': final_asin})}\n\n"
+                    
+                    # Send completion event
+                    yield f"event: done\ndata: {json.dumps({'status': 'complete'})}\n\n"
+                    logger.info("Stream completed successfully")
+            
+            except Exception as e:
+                logger.error(f"Stream error: {str(e)}", exc_info=True)
+                yield f"event: error\ndata: {json.dumps({'error': str(e)})}\n\n"
         
-        # Run graph
-        config = {
-            "configurable": {
-                "thread_id": request.sessionId,
-                "jwt_token": jwt_token  # Pass JWT through config for reliable access
+        return StreamingResponse(
+            event_generator(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no"
             }
-        }
-        result = await graph.ainvoke(initial_state, config)
-        
-        logger.info(f"Generated response")
-        
-        # Extract response data from state
-        message = result.get("response", "")
-        image_url = result.get("image_url")
-        asin = result.get("asin")
-        
-        return ChatResponse(
-            message=message,
-            image_url=image_url,
-            asin=asin
         )
+    
+    else:
+        # Return JSON response (original behavior)
+        async with RequestContext(jwt_token=jwt_token, session_id=request.sessionId):
+            result = await graph.ainvoke(initial_state, config)
+            
+            logger.info(f"Generated response")
+            
+            # Extract response data from state
+            message = result.get("response", "")
+            image_url = result.get("image_url")
+            asin = result.get("asin")
+            
+            return ChatResponse(
+                message=message,
+                image_url=image_url,
+                asin=asin
+            )
 
 
 @app.get("/health")

@@ -13,9 +13,9 @@ import logging
 
 from app.models.agentState import AgentState
 from app.config import get_settings
-from app.graph.nodes.asin_product_handler.prompt import ASIN_PRODUCT_SYSTEM_PROMPT
-from app.graph.nodes.asin_product_handler.templates import format_templates_for_prompt
-from app.graph.nodes.asin_product_handler.asin_metrics_tool import (
+from app.graph.nodes.classifier_route_node.asin_product_handler.prompt import ASIN_PRODUCT_SYSTEM_PROMPT
+from app.graph.nodes.classifier_route_node.asin_product_handler.templates import format_templates_for_prompt
+from app.graph.nodes.classifier_route_node.asin_product_handler.asin_metrics_tool import (
     get_ranked_products,
     get_asin_metrics,
 )
@@ -51,7 +51,8 @@ async def asin_product_handler_node(state: AgentState) -> AgentState:
     llm = ChatOpenAI(
         model=settings.openai_model,
         temperature=0,
-        api_key=settings.openai_api_key
+        api_key=settings.openai_api_key,
+        streaming=True
     )
     
     # Create agent with ASIN-aware tools

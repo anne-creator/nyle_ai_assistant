@@ -7,7 +7,7 @@ from app.models.agentState import AgentState
 from app.config import get_settings
 from app.metricsAccessLayer import metrics_api
 from app.context import set_jwt_token_for_task
-from app.graph.nodes.insight_query_handler.prompt import (
+from app.graph.nodes.classifier_route_node.insight_query_handler.prompt import (
     INSIGHT_INTENT_PROMPT,
     COMPARISON_EXPLANATION_PROMPT,
     TREND_ANALYSIS_PROMPT
@@ -103,28 +103,48 @@ async def _execute_comparison_pipeline(state: AgentState) -> dict:
     Deterministic pipeline for general comparison questions.
     
     Calls ads executive summary for both periods.
+    
+    Logic:
+    - If explicit compare dates provided: use them
+    - If single date range (multi-day) with no compare dates: compare first day vs last day
+      This handles "How did X change from Oct 15 to Oct 30" → Oct 15 vs Oct 30
+    - Otherwise: derive previous same-length period
     """
     date_start = state["date_start"]
     date_end = state["date_end"]
     
-    # Derive comparison period if not provided
     if state.get("compare_date_start") and state.get("compare_date_end"):
+        # Explicit comparison periods provided
         compare_start = state["compare_date_start"]
         compare_end = state["compare_date_end"]
+        current_start = date_start
+        current_end = date_end
+    elif date_start != date_end:
+        # Multi-day range with no compare dates:
+        # Compare first day vs last day of the range
+        # This handles "How did X change from Oct 15 to Oct 30"
+        current_start = date_end  # Last day (more recent) = "current"
+        current_end = date_end
+        compare_start = date_start  # First day (earlier) = "comparison"
+        compare_end = date_start
+        logger.info(f"Comparing first vs last day of range: {compare_start} vs {current_start}")
     else:
+        # Single day query - derive previous day for comparison
         compare_start, compare_end = _derive_comparison_period(date_start, date_end)
+        current_start = date_start
+        current_end = date_end
     
-    logger.info(f"Comparison pipeline: A=[{date_start} to {date_end}], B=[{compare_start} to {compare_end}]")
+    logger.info(f"Comparison pipeline: Current=[{current_start} to {current_end}], Compare=[{compare_start} to {compare_end}]")
     
-    # Fetch current period
-    current = await metrics_api.get_ads_executive_summary(date_start, date_end)
+    # Fetch current period (more recent)
+    current = await metrics_api.get_ads_executive_summary(current_start, current_end)
     
-    # Fetch comparison period
+    # Fetch comparison period (earlier)
     comparison = await metrics_api.get_ads_executive_summary(compare_start, compare_end)
     
     return {
-        "period_a_start": date_start,
-        "period_a_end": date_end,
+        "period_a_start": current_start,
+        "period_a_end": current_end,
         "period_b_start": compare_start,
         "period_b_end": compare_end,
         "current": current,
@@ -227,9 +247,9 @@ def _generate_trend_analysis_response(data: dict, question: str) -> str:
 **Summary Statistics:**
 - Net Profit: Sum=${data['stats']['profit']['sum']:,}, Avg=${data['stats']['profit']['avg']:,}, Max=${data['stats']['profit']['max']:,}, Min=${data['stats']['profit']['min']:,}
 - Total Sales: Sum=${data['stats']['sales']['sum']:,}, Avg=${data['stats']['sales']['avg']:,}
-- ACOS Avg: {data['stats']['acos_avg']}%
-- TOS IS Avg: {data['stats']['tos_avg']}%
-- ROI Avg: {data['stats']['roi_avg']}%
+- ACOS Avg: {data['stats']['acos_avg']:.2f}%
+- Ad TOS IS Avg: {data['stats']['ad_tos_is_avg']:.2f}%
+- ROI Avg: {data['stats']['roi_avg']:.2f}%
 
 **User Question:** {question}
 
@@ -237,6 +257,97 @@ def _generate_trend_analysis_response(data: dict, question: str) -> str:
     
     response = llm.invoke(prompt)
     return response.content.strip()
+
+
+async def _get_optimization_potential(
+    date_start: str, 
+    date_end: str, 
+    asin: str = None
+) -> str:
+    """
+    Get optimization potential by calling non_optimal_spends and optimal_goals APIs.
+    
+    Returns formatted text with all non-zero optimal goal metrics.
+    API returns: acos, ad_tos_is, total_sales, ad_spend, ad_sales, net_profit
+    """
+    try:
+        # Fetch both APIs in parallel
+        import asyncio
+        non_optimal, optimal = await asyncio.gather(
+            metrics_api.get_non_optimal_spends(date_start, date_end, asin=asin),
+            metrics_api.get_optimal_goals(date_start, date_end, asin=asin),
+            return_exceptions=True
+        )
+        
+        # Handle errors gracefully
+        if isinstance(non_optimal, Exception):
+            logger.warning(f"Failed to get non_optimal_spends: {non_optimal}")
+            non_optimal = 0
+        
+        if isinstance(optimal, Exception):
+            logger.warning(f"Failed to get optimal_goals: {optimal}")
+            return ""  # Can't generate optimization text without optimal goals
+        
+        # Extract potential gain
+        potential_gain = non_optimal if isinstance(non_optimal, (int, float)) else 0
+        
+        if not isinstance(optimal, dict) or potential_gain <= 0:
+            return ""
+        
+        # Build list of non-zero/non-null optimal goal adjustments
+        # Metric definitions: (api_key, display_name, is_percentage, needs_multiply_100)
+        metric_definitions = [
+            ("acos", "ACOS", True, False),  # Already in % form
+            ("ad_tos_is", "Ad TOS IS", True, True),  # Decimal, needs *100
+            ("total_sales", "Total Sales", False, False),  # Currency
+            ("ad_spend", "Ad Spend", False, False),  # Currency
+            ("ad_sales", "Ad Sales", False, False),  # Currency
+            ("net_profit", "Net Profit", False, False),  # Currency
+        ]
+        
+        adjustments = []
+        for api_key, display_name, is_percentage, needs_multiply in metric_definitions:
+            value = optimal.get(api_key)
+            
+            # Skip None or 0 values
+            if value is None or value == 0:
+                continue
+            
+            # Format the value
+            if is_percentage:
+                if needs_multiply and value < 1:
+                    value = value * 100
+                adjustments.append(f"{display_name} to **{value:.1f}%**")
+            else:
+                adjustments.append(f"{display_name} to **${value:,.0f}**")
+        
+        # If no adjustments found, return empty
+        if not adjustments:
+            return ""
+        
+        # Format date range nicely
+        period_range = _format_date_range(date_start, date_end)
+        
+        # Build the adjustment string (join with "and" for last item)
+        if len(adjustments) == 1:
+            adjustments_text = adjustments[0]
+        elif len(adjustments) == 2:
+            adjustments_text = f"{adjustments[0]} and {adjustments[1]}"
+        else:
+            adjustments_text = ", ".join(adjustments[:-1]) + f", and {adjustments[-1]}"
+        
+        # Build the optimization potential text
+        optimization_text = (
+            f"**Your store also has optimization potential:**\n\n"
+            f"You could have made **${potential_gain:,.0f}** (net profit gain) from {period_range}, "
+            f"if you had adjusted your {adjustments_text} at the start of this period."
+        )
+        
+        return optimization_text
+        
+    except Exception as e:
+        logger.warning(f"Error getting optimization potential: {e}")
+        return ""
 
 
 async def insight_query_handler_node(state: AgentState) -> AgentState:
@@ -265,14 +376,25 @@ async def insight_query_handler_node(state: AgentState) -> AgentState:
         response = _format_net_profit_response(data)
     elif insight_intent == "trend_analysis":
         # Use reusable trend metrics fetcher tool
+        date_start = state["date_start"]
+        date_end = state["date_end"]
         asin = state.get("asin")
+        
         data = await fetch_trend_metrics(
-            state["date_start"],
-            state["date_end"],
+            date_start,
+            date_end,
             timespan="day",
             asin=asin
         )
-        response = _generate_trend_analysis_response(data, question)
+        
+        # Generate trend analysis from LLM
+        trend_response = _generate_trend_analysis_response(data, question)
+        
+        # Fetch optimization potential data
+        optimization_text = await _get_optimization_potential(date_start, date_end, asin)
+        
+        # Combine trend analysis + optimization potential
+        response = trend_response + "\n\n" + optimization_text
     else:  # comparison
         data = await _execute_comparison_pipeline(state)
         response = _generate_comparison_explanation(data, question)

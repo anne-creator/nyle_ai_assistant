@@ -43,7 +43,8 @@ def _classify_metrics_vs_other(question: str) -> str:
     llm = ChatOpenAI(
         model=settings.openai_model,
         temperature=0,
-        api_key=settings.openai_api_key
+        api_key=settings.openai_api_key,
+        streaming=True
     )
     
     prompt = METRICS_VS_OTHER_PROMPT.format(question=question)
