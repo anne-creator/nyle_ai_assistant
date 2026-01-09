@@ -13,6 +13,7 @@ from app.graph.nodes.classifier_route_node.insight_query_handler.prompt import (
     TREND_ANALYSIS_PROMPT
 )
 from app.utils.trend_metrics_fetcher import fetch_trend_metrics
+from app.utils.button_helpers import create_set_goal_button
 
 logger = logging.getLogger(__name__)
 
@@ -259,88 +260,67 @@ def _generate_trend_analysis_response(data: dict, question: str) -> str:
     return response.content.strip()
 
 
+def _calculate_next_period(date_end: str) -> tuple[str, str]:
+    """
+    Calculate the next recommended goal period.
+    Starts the day after analysis period ends, with a 15-day window.
+    """
+    end = datetime.strptime(date_end, "%Y-%m-%d")
+    next_start = end + timedelta(days=1)
+    next_end = next_start + timedelta(days=14)  # 15-day window
+    return next_start.strftime("%Y-%m-%d"), next_end.strftime("%Y-%m-%d")
+
+
 async def _get_optimization_potential(
     date_start: str, 
     date_end: str, 
     asin: str = None
 ) -> str:
     """
-    Get optimization potential by calling non_optimal_spends and optimal_goals APIs.
+    Get optimization potential by calling optimal_goals API.
     
-    Returns formatted text with all non-zero optimal goal metrics.
-    API returns: acos, ad_tos_is, total_sales, ad_spend, ad_sales, net_profit
+    Returns formatted text with ACOS recommendation only.
+    Provides forward-looking goal suggestion for the next period.
     """
     try:
-        # Fetch both APIs in parallel
-        import asyncio
-        non_optimal, optimal = await asyncio.gather(
-            metrics_api.get_non_optimal_spends(date_start, date_end, asin=asin),
-            metrics_api.get_optimal_goals(date_start, date_end, asin=asin),
-            return_exceptions=True
+        # Fetch optimal goals
+        optimal = await metrics_api.get_optimal_goals(date_start, date_end, asin=asin)
+        
+        if not isinstance(optimal, dict):
+            logger.warning(f"Invalid optimal_goals response: {optimal}")
+            return ""
+        
+        # Extract ACOS value only
+        acos_value = optimal.get("acos")
+        
+        # Skip if ACOS is None or 0
+        if acos_value is None or acos_value == 0:
+            return ""
+        
+        # Calculate the next period for recommendations
+        next_start, next_end = _calculate_next_period(date_end)
+        next_period_range = _format_date_range(next_start, next_end)
+        
+        # Round ACOS to whole number for display and button
+        acos_rounded = round(acos_value)
+        acos_formatted = f"{acos_rounded}%"
+        
+        # Create the set_goal button with ACOS and next period dates
+        button_markup = create_set_goal_button(
+            metric_name="acos",
+            metric_value=acos_rounded,
+            date_start=next_start,
+            date_end=next_end
         )
         
-        # Handle errors gracefully
-        if isinstance(non_optimal, Exception):
-            logger.warning(f"Failed to get non_optimal_spends: {non_optimal}")
-            non_optimal = 0
-        
-        if isinstance(optimal, Exception):
-            logger.warning(f"Failed to get optimal_goals: {optimal}")
-            return ""  # Can't generate optimization text without optimal goals
-        
-        # Extract potential gain
-        potential_gain = non_optimal if isinstance(non_optimal, (int, float)) else 0
-        
-        if not isinstance(optimal, dict) or potential_gain <= 0:
-            return ""
-        
-        # Build list of non-zero/non-null optimal goal adjustments
-        # Metric definitions: (api_key, display_name, is_percentage, needs_multiply_100)
-        metric_definitions = [
-            ("acos", "ACOS", True, False),  # Already in % form
-            ("ad_tos_is", "Ad TOS IS", True, True),  # Decimal, needs *100
-            ("total_sales", "Total Sales", False, False),  # Currency
-            ("ad_spend", "Ad Spend", False, False),  # Currency
-            ("ad_sales", "Ad Sales", False, False),  # Currency
-            ("net_profit", "Net Profit", False, False),  # Currency
-        ]
-        
-        adjustments = []
-        for api_key, display_name, is_percentage, needs_multiply in metric_definitions:
-            value = optimal.get(api_key)
-            
-            # Skip None or 0 values
-            if value is None or value == 0:
-                continue
-            
-            # Format the value
-            if is_percentage:
-                if needs_multiply and value < 1:
-                    value = value * 100
-                adjustments.append(f"{display_name} to **{value:.1f}%**")
-            else:
-                adjustments.append(f"{display_name} to **${value:,.0f}**")
-        
-        # If no adjustments found, return empty
-        if not adjustments:
-            return ""
-        
-        # Format date range nicely
-        period_range = _format_date_range(date_start, date_end)
-        
-        # Build the adjustment string (join with "and" for last item)
-        if len(adjustments) == 1:
-            adjustments_text = adjustments[0]
-        elif len(adjustments) == 2:
-            adjustments_text = f"{adjustments[0]} and {adjustments[1]}"
-        else:
-            adjustments_text = ", ".join(adjustments[:-1]) + f", and {adjustments[-1]}"
-        
-        # Build the optimization potential text
+        # Build the forward-looking recommendation text with button
         optimization_text = (
-            f"**Your store also has optimization potential:**\n\n"
-            f"You could have made **${potential_gain:,.0f}** (net profit gain) from {period_range}, "
-            f"if you had adjusted your {adjustments_text} at the start of this period."
+            f"Looking ahead, I want to help you stabilize your business performance. "
+            f"Based on scenario simulations combining your historical data patterns with predictive modeling.\n\n"
+            f"Recommended goals ({next_period_range}):\n"
+            f"ACOS: {acos_formatted}\n\n"
+            f"Would you like me to update this goal for you?\n\n"
+            f"{button_markup}"
         )
         
         return optimization_text
