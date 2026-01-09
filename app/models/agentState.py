@@ -22,7 +22,7 @@ class AgentState(TypedDict):
     question: str
     
     # ========== HTTP Interaction Context ==========
-    interaction_type: Optional[str]  # e.g., "dashboard_load"
+    interaction_type: Optional[str]  # e.g., "dashboard_load", "goal_created"
     
     # ========== HTTP Request Original Params: initialized in main.py for each message ==========
     _http_date_start: Optional[str]      # Can be any string from frontend
@@ -71,6 +71,7 @@ class AgentState(TypedDict):
         "asin_product",
         "dashboard_load",
         "hardcoded",
+        "goal_query",
         "other_query"
     ]
     
