@@ -59,11 +59,6 @@ class AgentState(TypedDict):
     # ========== ASIN ==========
     asin: Optional[str]  # B0XXXXXXXXX format
     
-    # ========== Node 3 Outputs: Evaluation ==========
-    _normalizer_valid: Optional[bool]
-    _normalizer_retries: Optional[int]
-    _normalizer_feedback: Optional[str]
-    
     # ========== Classifier Output ==========
     question_type: Literal[
         "metrics_query",

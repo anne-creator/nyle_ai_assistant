@@ -4,7 +4,9 @@ Subgraph wrappers for evaluating the first 3 nodes together.
 Creates a linear subgraph: label_normalizer -> message_analyzer -> extractor_evaluator
 Each node's output is captured for LangSmith visibility.
 
-Note: message_analyzer (Node 2) now performs date calculation as pure Python logic (no AI).
+Note: 
+- message_analyzer (Node 2) now performs date calculation as pure Python logic (no AI).
+- extractor_evaluator (Node 3) is a pass-through node (no actual evaluation performed).
 """
 import sys
 from pathlib import Path
@@ -143,14 +145,9 @@ def node3_wrapped(state: SubgraphState) -> SubgraphState:
     """
     Wrapper for extractor_evaluator_node.
     
-    Node 3 is now an AI-powered evaluator that:
-    - Validates Node 1 label extraction accuracy
-    - Validates Node 2 date calculation correctness
-    - Provides feedback for regeneration
-    - Manages retry counter (max 3 attempts)
-    
-    Note: The retry loop is handled in the main graph builder.
-    This wrapper just runs the node once per invocation.
+    Note: Node 3 is currently a pass-through node that doesn't perform any evaluation.
+    It always sets _normalizer_valid=True and passes through to the next node.
+    Kept in evaluation subgraph for backwards compatibility with existing datasets.
     """
     result = extractor_evaluator_node(state)
     return result
@@ -163,10 +160,10 @@ def create_three_node_subgraph():
     This tests the first 3 nodes of the pipeline:
     - Node 1 (label_normalizer): Extracts date labels using AI (supports feedback-driven retry)
     - Node 2 (message_analyzer): Converts labels to dates (pure Python, deterministic)
-    - Node 3 (extractor_evaluator): AI-powered validator that provides feedback
+    - Node 3 (extractor_evaluator): Pass-through node (no actual evaluation performed)
     
     Note: For evaluation purposes, this subgraph does NOT include the retry loop.
-    The retry loop is only active in the main production graph.
+    The retry loop is only active in the main production graph (though currently disabled).
     
     Returns:
         Compiled StateGraph for evaluation

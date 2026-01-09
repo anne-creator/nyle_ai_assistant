@@ -32,15 +32,7 @@ def message_analyzer_node(state: AgentState) -> AgentState:
         - "explicit_date": Maps directly from _explicit_date_start/end
     """
     
-    # Check if there's feedback from Node 3 (for logging/debugging)
-    feedback = state.get("_normalizer_feedback")
-    retry_count = state.get("_normalizer_retries", 0)
-    
-    if feedback and retry_count > 0:
-        logger.info(f"🔄 Message Analyzer Retry #{retry_count}: Recalculating dates based on updated labels")
-        logger.debug(f"💡 Context - Previous feedback: {feedback}")
-    else:
-        logger.info("📅 Message Analyzer: Calculating dates from labels")
+    logger.info("📅 Message Analyzer: Calculating dates from labels")
     
     # Initialize calculator with current date
     calculator = DateCalculator()

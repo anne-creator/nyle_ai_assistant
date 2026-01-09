@@ -5,7 +5,6 @@ from app.models.agentState import AgentState
 from app.graph.nodes import (
     label_normalizer_node,
     message_analyzer_node,
-    extractor_evaluator_node,
     classify_question_node,
     metrics_query_handler_node,
     insight_query_handler_node,
@@ -42,9 +41,8 @@ def create_chatbot_graph():
     Flow:
     1. label_normalizer: Extracts date labels and ASIN
     2. message_analyzer: Converts labels to ISO dates (deterministic Python)
-    3. extractor_evaluator: Pass-through validation (retries disabled)
-    4. classifier: Classifies question type
-    5. Route to appropriate handler based on question type
+    3. classifier: Classifies question type
+    4. Route to appropriate handler based on question type
     """
     
     # Create graph
@@ -53,7 +51,6 @@ def create_chatbot_graph():
     # Add nodes in order
     workflow.add_node("label_normalizer", label_normalizer_node)
     workflow.add_node("message_analyzer", message_analyzer_node)
-    workflow.add_node("extractor_evaluator", extractor_evaluator_node)
     workflow.add_node("classifier", classify_question_node)
     
     # Add handler nodes
@@ -71,15 +68,14 @@ def create_chatbot_graph():
     # Set entry point
     workflow.set_entry_point("label_normalizer")
     
-    # Chain: label_normalizer → message_analyzer → extractor_evaluator
+    # Chain: label_normalizer → message_analyzer → classifier
     workflow.add_edge("label_normalizer", "message_analyzer")
-    workflow.add_edge("message_analyzer", "extractor_evaluator")
-    
-    # Route after evaluation: always continue forward (no retry loop)
-    workflow.add_edge("extractor_evaluator", "classifier")
+    workflow.add_edge("message_analyzer", "classifier")
     
     # Conditional routing after classification
     # The keys here must match what route_by_question_type RETURNS (node names)
+    # When route_by_question_type returns "goal_handler", execution automatically
+    # routes to the goal_handler node, which triggers goal_handler_node execution.
     workflow.add_conditional_edges(
         "classifier",
         route_by_question_type,
@@ -89,7 +85,7 @@ def create_chatbot_graph():
             "asin_product_handler": "asin_product_handler",
             "dashboard_load_handler": "dashboard_load_handler",
             "hardcoded_response": "hardcoded_response",
-            "goal_handler": "goal_handler",
+            "goal_handler": "goal_handler",  # Conditional edge routes execution to goal_handler node automatically
             "other_handler": "other_handler"
         }
     )
