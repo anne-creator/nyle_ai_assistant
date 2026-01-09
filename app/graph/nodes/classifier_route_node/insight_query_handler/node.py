@@ -13,6 +13,7 @@ from app.graph.nodes.classifier_route_node.insight_query_handler.prompt import (
     TREND_ANALYSIS_PROMPT
 )
 from app.utils.trend_metrics_fetcher import fetch_trend_metrics
+from app.utils.button_helpers import create_set_goal_button
 
 logger = logging.getLogger(__name__)
 
@@ -300,16 +301,26 @@ async def _get_optimization_potential(
         next_start, next_end = _calculate_next_period(date_end)
         next_period_range = _format_date_range(next_start, next_end)
         
-        # Format ACOS as percentage (round to whole number)
-        acos_formatted = f"{round(acos_value)}%"
+        # Round ACOS to whole number for display and button
+        acos_rounded = round(acos_value)
+        acos_formatted = f"{acos_rounded}%"
         
-        # Build the forward-looking recommendation text
+        # Create the set_goal button with ACOS and next period dates
+        button_markup = create_set_goal_button(
+            metric_name="acos",
+            metric_value=acos_rounded,
+            date_start=next_start,
+            date_end=next_end
+        )
+        
+        # Build the forward-looking recommendation text with button
         optimization_text = (
             f"Looking ahead, I want to help you stabilize your business performance. "
             f"Based on scenario simulations combining your historical data patterns with predictive modeling.\n\n"
             f"Recommended goals ({next_period_range}):\n"
             f"ACOS: {acos_formatted}\n\n"
-            f"Would you like me to update this goal for you?"
+            f"Would you like me to update this goal for you?\n\n"
+            f"{button_markup}"
         )
         
         return optimization_text
