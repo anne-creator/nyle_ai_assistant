@@ -446,6 +446,30 @@ class MathMetricRetriever:
         logger.info(f"Calling {endpoint}")
         return await self.client.get(endpoint, params)
 
+    # ========== API 15: Goals List ==========
+    async def get_goals_list(
+        self,
+        date_start: str,
+        date_end: str,
+        asin: Optional[str] = None
+    ) -> dict:
+        """
+        GET /v1/goals/list
+        
+        Returns list of user-set goals for the period.
+        Response format: {"goals": [{"asin": "...", "metric": "acos", "value": 23, "date_start": "...", "date_end": "..."}]}
+        """
+        endpoint = "/math/v1/goals/list"
+        params = {
+            "date_start": date_start,
+            "date_end": date_end
+        }
+        if asin:
+            params["asin"] = asin
+        
+        logger.info(f"Calling {endpoint}")
+        return await self.client.get(endpoint, params)
+
 
 # ========== Singleton Instance - Use this everywhere ==========
 metrics_api = MathMetricRetriever()

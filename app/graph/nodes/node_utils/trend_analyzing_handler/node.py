@@ -70,7 +70,7 @@ def _generate_trend_analysis_response(data: dict, question: str) -> str:
     Generate LLM analysis for trend data.
     
     Uses TREND_ANALYSIS_PROMPT to identify trends in net profit,
-    correlate with other metrics, and explain root causes.
+    correlate with user goals first, then other metrics, and explain root causes.
     """
     # Check if we have any data
     if not data.get('stats') or data.get('days', 0) == 0:
@@ -87,19 +87,19 @@ def _generate_trend_analysis_response(data: dict, question: str) -> str:
     # Build summary statistics only if stats exist
     stats = data.get('stats', {})
     profit_stats = stats.get('profit', {})
-    sales_stats = stats.get('sales', {})
     
     prompt = f"""{TREND_ANALYSIS_PROMPT}
+
+**User-Set Goals:**
+{data.get('goals_text', 'No active goals during this period.')}
 
 **Daily Metrics Data:**
 {data['text']}
 
 **Summary Statistics:**
 - Net Profit: Sum=${profit_stats.get('sum', 0):,}, Avg=${profit_stats.get('avg', 0):,}, Max=${profit_stats.get('max', 0):,}, Min=${profit_stats.get('min', 0):,}
-- Total Sales: Sum=${sales_stats.get('sum', 0):,}, Avg=${sales_stats.get('avg', 0):,}
 - ACOS Avg: {stats.get('acos_avg', 0):.2f}%
 - Ad TOS IS Avg: {stats.get('ad_tos_is_avg', 0):.2f}%
-- ROI Avg: {stats.get('roi_avg', 0):.2f}%
 
 **User Question:** {question}
 
