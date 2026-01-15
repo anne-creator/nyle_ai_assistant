@@ -44,6 +44,20 @@ def _is_goal_query(question: str) -> bool:
     return any(keyword in question_lower for keyword in goal_keywords)
 
 
+def _is_inventory_query(question: str) -> bool:
+    """Check if question is inventory-related (DOI, storage fees, stockout risks)."""
+    question_lower = question.lower().strip()
+    inventory_keywords = [
+        "doi", "days of inventory", "day of inventory",
+        "storage fee", "storage fees", "storage cost",
+        "inventory", "stock", "stockout", "stock out",
+        "safety stock", "available stock", "in transit",
+        "receiving", "low stock", "out of stock",
+        "inventory turnover", "fba in-stock", "fba in stock"
+    ]
+    return any(keyword in question_lower for keyword in inventory_keywords)
+
+
 def _is_asin_query(question: str, state: AgentState) -> bool:
     """Check if question is about a specific ASIN/product."""
     # Check if ASIN param exists
@@ -83,11 +97,12 @@ def classify_question_node(state: AgentState) -> AgentState:
 
     Classification priority:
     0. goal_query - interaction_type is "goal_created" or "goal_created_failed" OR goal-related questions
-    1. dashboard_load - interaction_type is "dashboard_load" (deterministic)
-    2. hardcoded - Exact match in hardcoded questions dictionary
-    3. asin_product - ASIN param exists OR question contains "ASIN"/"ASINs"
-    4. insight_query - compare_date_start exists OR question contains insight keywords
-    5. metrics_query vs other_query - AI decides (business question vs general question)
+    1. inventory_query - Questions about DOI, storage fees, stockout risks
+    2. dashboard_load - interaction_type is "dashboard_load" (deterministic)
+    3. hardcoded - Exact match in hardcoded questions dictionary
+    4. asin_product - ASIN param exists OR question contains "ASIN"/"ASINs"
+    5. insight_query - compare_date_start exists OR question contains insight keywords
+    6. metrics_query vs other_query - AI decides (business question vs general question)
     """
     
     question = state.get("question", "")
@@ -110,34 +125,40 @@ def classify_question_node(state: AgentState) -> AgentState:
         state["question_type"] = "goal_query"
         return state
     
-    # 1. Check for dashboard_load interaction type (deterministic, no AI needed)
+    # 1. Check for inventory-related queries (DOI, storage fees, stockout risks)
+    if _is_inventory_query(question):
+        logger.info("Detected inventory-related query")
+        state["question_type"] = "inventory_query"
+        return state
+    
+    # 2. Check for dashboard_load interaction type (deterministic, no AI needed)
     if state.get("interaction_type") == "dashboard_load":
         logger.info("Detected dashboard_load interaction type")
         state["question_type"] = "dashboard_load"
         return state
     
-    # 2. Check hardcoded (exact match)
+    # 3. Check hardcoded (exact match)
     if _is_hardcoded(question):
         question_type = "hardcoded"
         logger.info(f"Classified as hardcoded (exact match)")
         state["question_type"] = question_type
         return state
     
-    # 3. Check ASIN query
+    # 4. Check ASIN query
     if _is_asin_query(question, state):
         question_type = "asin_product"
         logger.info(f"Classified as asin_product (ASIN detected)")
         state["question_type"] = question_type
         return state
     
-    # 4. Check insight query
+    # 5. Check insight query
     if state.get("compare_date_start") or _has_insight_keywords(question):
         question_type = "insight_query"
         logger.info(f"Classified as insight_query (insight/comparison detected)")
         state["question_type"] = question_type
         return state
     
-    # 5. AI decides: metrics_query vs other_query
+    # 6. AI decides: metrics_query vs other_query
     question_type = _classify_metrics_vs_other(question)
     logger.info(f"Classified as {question_type} (AI decision)")
     state["question_type"] = question_type

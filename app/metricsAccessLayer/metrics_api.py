@@ -127,12 +127,14 @@ class MathMetricRetriever:
         date_start: str,
         date_end: str,
         asin: Optional[str] = None,
-        timespan: Optional[str] = None
+        timespan: Optional[str] = None,
+        compare_date_start: Optional[str] = None,
+        compare_date_end: Optional[str] = None
     ) -> dict:
         """
         GET /inventory/metrics/executive-summary
         
-        Returns inventory data, optionally filtered by ASIN.
+        Returns inventory data, optionally filtered by ASIN with comparison support.
         """
         endpoint = "/math/v1/math/inventory/metrics/executive-summary"
         params = {
@@ -143,6 +145,43 @@ class MathMetricRetriever:
             params["asin"] = asin
         if timespan:
             params["timespan"] = timespan
+        if compare_date_start:
+            params["compare_date_start"] = compare_date_start
+        if compare_date_end:
+            params["compare_date_end"] = compare_date_end
+        
+        logger.info(f"Calling {endpoint}")
+        return await self.client.get(endpoint, params)
+    
+    # ========== API 4b: Inventory Metrics ==========
+    async def get_inventory_metrics(
+        self,
+        date_start: str,
+        date_end: str,
+        asin: Optional[str] = None,
+        timespan: Optional[str] = None,
+        compare_date_start: Optional[str] = None,
+        compare_date_end: Optional[str] = None
+    ) -> dict:
+        """
+        GET /inventory/metrics
+        
+        Returns detailed inventory metrics (non-summary) with comparison support.
+        Expected to include: safety_stock, inventory_turnover, fba_in_stock_rate
+        """
+        endpoint = "/math/v1/math/inventory/metrics"
+        params = {
+            "date_start": date_start,
+            "date_end": date_end
+        }
+        if asin:
+            params["asin"] = asin
+        if timespan:
+            params["timespan"] = timespan
+        if compare_date_start:
+            params["compare_date_start"] = compare_date_start
+        if compare_date_end:
+            params["compare_date_end"] = compare_date_end
         
         logger.info(f"Calling {endpoint}")
         return await self.client.get(endpoint, params)
@@ -372,6 +411,38 @@ class MathMetricRetriever:
         logger.info(f"Calling {endpoint}")
         return await self.client.get(endpoint, params)
 
+    # ========== API 11b: Total Units Sold ==========
+    async def get_total_units_sold(
+        self,
+        date_start: str,
+        date_end: str,
+        timespan: str = "day",
+        asin: Optional[str] = None,
+        compare_date_start: Optional[str] = None,
+        compare_date_end: Optional[str] = None
+    ) -> dict:
+        """
+        GET /total/units-sold
+        
+        Returns total units sold over time with comparison support.
+        Similar to get_daily_total_sales but specifically for units sold.
+        """
+        endpoint = "/math/v1/math/total/units-sold"
+        params = {
+            "date_start": date_start,
+            "date_end": date_end,
+            "timespan": timespan
+        }
+        if asin:
+            params["asin"] = asin
+        if compare_date_start:
+            params["compare_date_start"] = compare_date_start
+        if compare_date_end:
+            params["compare_date_end"] = compare_date_end
+        
+        logger.info(f"Calling {endpoint}")
+        return await self.client.get(endpoint, params)
+
     # ========== API 12: Daily Net Profit ==========
     async def get_daily_net_profit(
         self,
@@ -418,6 +489,38 @@ class MathMetricRetriever:
         }
         if asin:
             params["asin"] = asin
+        
+        logger.info(f"Calling {endpoint}")
+        return await self.client.get(endpoint, params)
+
+    # ========== API 13b: CFO Lost Sales ==========
+    async def get_cfo_lost_sales(
+        self,
+        date_start: str,
+        date_end: str,
+        timespan: str = "day",
+        asin: Optional[str] = None,
+        compare_date_start: Optional[str] = None,
+        compare_date_end: Optional[str] = None
+    ) -> dict:
+        """
+        GET /cfo/lost-sales
+        
+        Returns lost sales data for stockout risk analysis with comparison support.
+        Helps identify revenue loss due to inventory shortages.
+        """
+        endpoint = "/math/v1/math/cfo/lost-sales"
+        params = {
+            "date_start": date_start,
+            "date_end": date_end,
+            "timespan": timespan
+        }
+        if asin:
+            params["asin"] = asin
+        if compare_date_start:
+            params["compare_date_start"] = compare_date_start
+        if compare_date_end:
+            params["compare_date_end"] = compare_date_end
         
         logger.info(f"Calling {endpoint}")
         return await self.client.get(endpoint, params)

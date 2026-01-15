@@ -87,36 +87,46 @@ Analyze daily metrics over a time period to identify net profit trends and expla
 **Ad TOS IS (Top of Search Impression Share):** Higher means more visibility but more ad spend.
 **Net Profit:** Primary metric - all insights should explain profit changes.
 
-## Response Format - COMPACT NARRATIVE STYLE
+## Response Format
 
-Write 1-2 trend insights as flowing sentences. Each trend should:
-1. Start with the net profit change (% and $amount) for the period
-2. Explain the cause by checking goals FIRST, then metrics
+Structure your response with these two sections:
+
+**The Good News:** [Describe net profit increase period with total profit earned, ALWAYS include goal date range if applicable]
+
+**Areas of Concern:** [Describe net profit decrease period with total profit lost, explain why - goal ended or metrics changed]
 
 **REQUIRED FORMAT:**
 
-📈 **Your net profit increased by X.XX% (+$XXX,XXX) from [date] to [date]**, and this is because [CHECK GOALS FIRST: if goal was active during this period, mention it and whether you met the ACOS target. Otherwise, explain ACOS/Ad TOS IS changes]. [One more sentence about impact].
+**The Good News:** Your net profit was increasing from [start date] to [end date], [year], with a total of $XX,XXX.XX, and this is because you set the [METRIC] goal from [goal_start_date] to [goal_end_date] at [value]%. [Explain the impact of the goal on performance and specific ACOS improvements].
 
-📉 **Your net profit decreased by X.XX% (-$XXX,XXX) from [date] to [date]**, and this is because [CHECK GOALS FIRST: if this coincides with a goal ending on [date], mention that ACOS/metrics reverted after goal period. Otherwise, explain metric changes]. [One more sentence about impact].
+**Areas of Concern:** Your net profit was decreasing from [start date] to [end date], [year], with a total of $XX,XXX.XX, and this is because [explain reason - goal period ended on specific date, or if no goal, explain ACOS/Ad TOS IS changes]. [Additional context about the decline and metrics].
+
+**CRITICAL RULES:**
+- When mentioning any goal, ALWAYS include the goal's exact date range (from [goal_start] to [goal_end])
+- Calculate and show the TOTAL profit for each period (sum of daily profits)
+- Identify 1-2 major turning points that split the analysis period
+- The turning point is typically where goals end or major metric changes occur
 
 **EXAMPLE WITH GOALS:**
 
-📈 **Your net profit increased by 45.2% (+$15,230) from Oct 1 to Oct 8**, and this is because you had an active ACOS goal of 23% during this period and successfully maintained ACOS at 21.5%, well within your target. The disciplined ad efficiency combined with stable Ad TOS IS drove consistent profit growth.
+**The Good News:** Your net profit was increasing from October 1 to October 15, 2025, with a total of $78,791.98, and this is because you set the ACOS goal from October 1 to October 15 at 23%. During this period, your ACOS consistently improved, dropping from 27.43% to 24.81%, which allowed for more efficient ad spending relative to sales, significantly boosting your net profit.
 
-📉 **Your net profit decreased by 32.1% (-$8,450) from Oct 15 to Oct 20**, and this is because your ACOS goal period ended on Oct 15, and ACOS immediately reverted from 22% to 28%, eroding margins. Without active goal management, ad spend efficiency declined sharply.
+**Areas of Concern:** Your net profit was decreasing from October 16 to October 30, 2025, with a total of $21,070.06, and this is because the ACOS spiked from 23.05% to 29.85% while your Ad TOS IS remained high. After the goal period ended on October 15, the increase in ACOS indicated a decline in advertising efficiency, leading to reduced profit margins as ad costs rose without a corresponding increase in sales.
 
 **EXAMPLE WITHOUT GOALS:**
 
-📈 **Your net profit increased by 328.5% (+$126,620) from Oct 7 to Oct 8**, and this is because you optimized your ACOS from 20.06% to 18.57% during that period. The improved ad efficiency combined with higher Ad TOS IS drove significant profit growth.
+**The Good News:** Your net profit was increasing from October 1 to October 15, 2025, with a total of $45,230.50, and this is because your ACOS dropped from 26% to 21.5% during this period. The improved ad efficiency combined with stable Ad TOS IS drove consistent profit growth.
+
+**Areas of Concern:** Your net profit was decreasing from October 16 to October 30, 2025, with a total of $12,450.00, and this is because ACOS spiked from 22% to 35% while Ad TOS IS remained high. Without active goal management, ad spend efficiency declined sharply, eroding your margins.
 
 ## Rules
 - ALWAYS check User-Set Goals section first before analyzing metrics
-- Mention goal periods explicitly when they correlate with profit changes
-- Use "your [metric] goal" when referencing user-set targets
-- Percentages: X.XX% format (e.g., 26.43%)
-- Currency: $X,XXX format with commas
-- Keep each trend to 2-3 sentences max
+- ALWAYS include goal date ranges when mentioning goals (from [start] to [end])
+- Calculate and show the TOTAL profit for each period (sum of daily profits from the data)
+- Use "your [metric] goal from [date] to [date]" format
+- Currency: $XX,XXX.XX format with commas and 2 decimal places
 - Always use "Ad TOS IS" (not "TOS IS")
-- Identify only 1-2 major turning points
+- Identify the major turning point (usually goal end date or significant metric change)
+- Split the analysis period at the turning point
 - Write in second person ("your net profit")"""
 

@@ -109,6 +109,56 @@ def _generate_trend_analysis_response(data: dict, question: str) -> str:
     return response.content.strip()
 
 
+async def _get_non_optimal_potential(
+    date_start: str,
+    date_end: str,
+    asin: str = None
+) -> str:
+    """
+    Get non-optimal ad spend potential by calling non-optimal-spends API.
+    
+    Returns formatted text showing how much additional profit could have been earned
+    if non-optimal ad campaigns were optimized.
+    """
+    try:
+        # Fetch non-optimal spends
+        non_optimal = await metrics_api.get_non_optimal_spends(
+            date_start, 
+            date_end, 
+            asin=asin
+        )
+        
+        # Handle different response formats
+        if isinstance(non_optimal, dict):
+            non_optimal_value = non_optimal.get("value", 0) or non_optimal.get("total", 0) or 0
+        elif isinstance(non_optimal, (int, float)):
+            non_optimal_value = non_optimal
+        else:
+            logger.warning(f"Unexpected non_optimal_spends response type: {type(non_optimal)}")
+            return ""
+        
+        # Skip if value is None, 0, or negative
+        if not non_optimal_value or non_optimal_value <= 0:
+            return ""
+        
+        # Format the value with 2 decimal places
+        formatted_value = f"${non_optimal_value:,.2f}"
+        
+        # Build the optimal potential text
+        potential_text = (
+            f"**Your store has an optimal potential:** You could have earned an additional "
+            f"{formatted_value} in net profit during this period. This figure represents "
+            f"the difference between your actual earnings and what would have been possible "
+            f"if your key metrics had remained at their optimal levels."
+        )
+        
+        return potential_text
+        
+    except Exception as e:
+        logger.warning(f"Error getting non-optimal potential: {e}")
+        return ""
+
+
 async def _get_optimization_potential(
     date_start: str, 
     date_end: str, 
@@ -176,8 +226,9 @@ async def trend_analyzing_handler_node(state: AgentState) -> dict:
     1. Extracts date_start, date_end, asin, question from state
     2. Fetches daily metrics using fetch_trend_metrics()
     3. Generates LLM-powered trend analysis
-    4. Fetches optimization recommendations
-    5. Combines all parts into a complete response
+    4. Fetches non-optimal potential (additional earnings possible)
+    5. Fetches optimization recommendations
+    6. Combines all parts into a complete response
     
     Handles questions like:
     - "Give me insights from Oct 1 to Oct 30"
@@ -191,6 +242,8 @@ async def trend_analyzing_handler_node(state: AgentState) -> dict:
         dict with:
         - response: str - Complete formatted response with trends + optimization
     """
+    import asyncio
+    
     date_start = state["date_start"]
     date_end = state["date_end"]
     asin = state.get("asin")
@@ -209,11 +262,25 @@ async def trend_analyzing_handler_node(state: AgentState) -> dict:
     # Generate trend analysis from LLM
     trend_response = _generate_trend_analysis_response(data, question)
     
-    # Fetch optimization potential data
-    optimization_text = await _get_optimization_potential(date_start, date_end, asin)
+    # Fetch non-optimal potential and optimization recommendations in parallel
+    non_optimal_text, optimization_text = await asyncio.gather(
+        _get_non_optimal_potential(date_start, date_end, asin),
+        _get_optimization_potential(date_start, date_end, asin)
+    )
     
-    # Combine trend analysis + optimization potential
-    response = trend_response + "\n\n" + optimization_text
+    # Combine all parts:
+    # 1. Trend analysis (The Good News / Areas of Concern)
+    # 2. Optimal potential (non-optimal spends)
+    # 3. Recommended goals + button
+    response_parts = [trend_response]
+    
+    if non_optimal_text:
+        response_parts.append(non_optimal_text)
+    
+    if optimization_text:
+        response_parts.append(optimization_text)
+    
+    response = "\n\n".join(response_parts)
     
     logger.info("Generated trend analysis response")
     

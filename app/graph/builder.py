@@ -13,6 +13,7 @@ from app.graph.nodes import (
     hardcoded_response_node,
     other_handler_node,
     goal_handler_node,
+    inventory_handler_node,
     async_image_enricher_node
 )
 
@@ -28,6 +29,7 @@ def route_by_question_type(state: AgentState) -> str:
         "dashboard_load": "dashboard_load_handler",
         "hardcoded": "hardcoded_response",
         "goal_query": "goal_handler",
+        "inventory_query": "inventory_handler",
         "other_query": "other_handler"
     }
     
@@ -60,6 +62,7 @@ def create_chatbot_graph():
     workflow.add_node("dashboard_load_handler", dashboard_load_handler_node)
     workflow.add_node("hardcoded_response", hardcoded_response_node)
     workflow.add_node("goal_handler", goal_handler_node)
+    workflow.add_node("inventory_handler", inventory_handler_node)
     workflow.add_node("other_handler", other_handler_node)
     
     # Add enrichment node
@@ -86,6 +89,7 @@ def create_chatbot_graph():
             "dashboard_load_handler": "dashboard_load_handler",
             "hardcoded_response": "hardcoded_response",
             "goal_handler": "goal_handler",  # Conditional edge routes execution to goal_handler node automatically
+            "inventory_handler": "inventory_handler",
             "other_handler": "other_handler"
         }
     )
@@ -100,6 +104,7 @@ def create_chatbot_graph():
     workflow.add_edge("dashboard_load_handler", END)
     workflow.add_edge("hardcoded_response", END)
     workflow.add_edge("goal_handler", END)
+    workflow.add_edge("inventory_handler", END)
     workflow.add_edge("other_handler", END)
     
     # Add memory for conversation history
