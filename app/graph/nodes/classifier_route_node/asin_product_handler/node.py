@@ -13,7 +13,10 @@ import logging
 
 from app.models.agentState import AgentState
 from app.config import get_settings
-from app.graph.nodes.classifier_route_node.asin_product_handler.prompt import ASIN_PRODUCT_SYSTEM_PROMPT
+from app.graph.nodes.classifier_route_node.asin_product_handler.prompt import (
+    ASIN_PRODUCT_SYSTEM_PROMPT,
+    ASIN_QUERY_TYPE_PROMPT
+)
 from app.graph.nodes.classifier_route_node.asin_product_handler.templates import format_templates_for_prompt
 from app.graph.nodes.classifier_route_node.asin_product_handler.asin_metrics_tool import (
     get_ranked_products,
@@ -24,6 +27,28 @@ from app.context import set_jwt_token_for_task
 logger = logging.getLogger(__name__)
 
 
+def _classify_asin_query_type(question: str) -> str:
+    """Sub-classify ASIN query type using LLM."""
+    settings = get_settings()
+    llm = ChatOpenAI(
+        model=settings.openai_model,
+        temperature=0,
+        api_key=settings.openai_api_key,
+        streaming=True
+    )
+    
+    prompt = ASIN_QUERY_TYPE_PROMPT.format(question=question)
+    response = llm.invoke(prompt)
+    query_type = response.content.strip().lower()
+    
+    # Validate query_type
+    if query_type not in ["insights", "metrics"]:
+        logger.warning(f"Invalid ASIN query type '{query_type}', defaulting to metrics")
+        query_type = "metrics"
+    
+    return query_type
+
+
 async def asin_product_handler_node(state: AgentState) -> AgentState:
     """
     Handler for asin_product type questions.
@@ -32,15 +57,31 @@ async def asin_product_handler_node(state: AgentState) -> AgentState:
     - "What are sales for ASIN B0B5HN65QQ?"
     - "What are my top 5 selling ASINs?"
     - "Which product has the highest ROI?"
+    - "Show me insights about ASIN B0160HYB8S from Oct 1 to Oct 30"
     """
     
     # Ensure JWT token is available for async tasks
     set_jwt_token_for_task(state["_jwt_token"])
     
-    logger.info(f"Processing asin_product query: '{state['question']}'")
+    question = state["question"]
+    logger.info(f"Processing asin_product query: '{question}'")
     logger.info(f"ASIN: {state.get('asin', 'N/A')}")
     logger.info(f"Date: {state['date_start']} to {state['date_end']}")
     
+    # 1. Sub-classify ASIN query type
+    query_type = _classify_asin_query_type(question)
+    logger.info(f"ASIN query type: {query_type}")
+    
+    # 2. Route to appropriate handler
+    if query_type == "insights":
+        # Call trend analyzing handler for insights questions
+        from app.graph.nodes.node_utils.trend_analyzing_handler import trend_analyzing_handler_node
+        result = await trend_analyzing_handler_node(state)
+        state["response"] = result["response"]
+        logger.info("Routed to trend_analyzing_handler for ASIN insights")
+        return state
+    
+    # 3. Otherwise, proceed with normal ASIN metrics agent
     settings = get_settings()
     
     # Build prompt with templates injected
