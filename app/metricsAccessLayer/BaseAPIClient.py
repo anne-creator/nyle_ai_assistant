@@ -21,7 +21,7 @@ class BaseAPIClient:
     
     def _get_base_url(self, settings) -> str:
         """Get base URL based on environment. Local and prod use prod URL."""
-        if settings.environment == "dev":
+        if settings.environment == "dev" or settings.environment == "local":
             return settings.dev_base_url
         else:
             return settings.prod_base_url

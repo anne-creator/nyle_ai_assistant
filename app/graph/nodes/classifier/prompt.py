@@ -41,6 +41,29 @@ INSIGHT_KEYWORDS = [
     "increased",
 ]
 
+# Keywords that indicate inventory/COO queries
+INVENTORY_KEYWORDS = [
+    "doi",
+    "days of inventory",
+    "day of inventory",
+    "storage fee",
+    "storage fees",
+    "storage cost",
+    "inventory",
+    "stock",
+    "stockout",
+    "stock out",
+    "safety stock",
+    "available stock",
+    "in transit",
+    "receiving",
+    "low stock",
+    "out of stock",
+    "inventory turnover",
+    "fba in-stock",
+    "fba in stock",
+]
+
 # AI prompt for distinguishing metrics_query vs other_query
 METRICS_VS_OTHER_PROMPT = """Classify this question into ONE category:
 

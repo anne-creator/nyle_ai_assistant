@@ -89,13 +89,12 @@ pytest tests/test_nodes.py -v
 
 ### 3-Node Subgraph Evaluation
 
-Evaluate the first 3 nodes of the pipeline together with feedback loop: `label_normalizer → message_analyzer → extractor_evaluator`
+Evaluate the first 3 nodes of the pipeline together: `label_normalizer → message_analyzer → extractor_evaluator`
 
 This tests:
 - **Node 1 (label_normalizer)**: LLM-based extraction of date labels and ASIN
 - **Node 2 (message_analyzer)**: Python-based date calculation from labels
-- **Node 3 (extractor_evaluator)**: LLM-based validation with feedback generation
-- **Retry Loop**: Node 3 can send feedback to Node 1 for re-extraction (max 3 attempts)
+- **Node 3 (extractor_evaluator)**: Pass-through node (no actual evaluation performed, kept for backwards compatibility)
 
 **Location:** `evaluations/subgraph_eval/`
 
@@ -130,11 +129,10 @@ evaluations/subgraph_eval/
 - Handles relative dates (today, yesterday, this week, etc.)
 - Handles explicit dates and custom day ranges
 
-**Node 3 (extractor_evaluator) - AI Validation:**
-- Validates Node 1 extraction accuracy
-- Validates Node 2 date calculations
-- Generates actionable feedback for corrections
-- Manages retry loop (max 3 attempts)
+**Node 3 (extractor_evaluator) - Pass-Through:**
+- Currently a pass-through node (no actual evaluation performed)
+- Always sets `_normalizer_valid=True` and passes through
+- Kept in evaluation subgraph for backwards compatibility with existing datasets
 
 **Pass-Through (metadata capture) - 3 Evaluators:**
 
@@ -255,25 +253,6 @@ START
 └────────────┬────────────────────┘
              ↓
 ┌─────────────────────────────────┐
-│   extractor_evaluator (Node 3) │  ← AI-powered validation
-│                                 │
-│ - Validates Node 1 extraction  │
-│ - Validates Node 2 dates       │
-│ - Generates feedback if issues │
-│ - Manages retry counter (max 3)│
-│ - Loops back to Node 1 if      │
-│   invalid and retries < 3      │
-└────────────┬────────────────────┘
-             ↓
-      [Retry Loop Check]
-             ↓
-    Valid OR max retries?
-         ↓        ↓
-        Yes       No
-         ↓        ↓
-         ↓    (back to Node 1)
-         ↓
-┌─────────────────────────────────┐
 │   classifier                    │  ← Classifies question type
 │                                 │
 │ - metrics_query                 │
@@ -338,9 +317,8 @@ app/
 └── graph/
     ├── builder.py       # LangGraph construction
     └── nodes/           # Node implementations
-        ├── label_normalizer/      # Node 1: LLM-based date label & ASIN extraction (with retry support)
+        ├── label_normalizer/      # Node 1: LLM-based date label & ASIN extraction
         ├── message_analyzer/      # Node 2: Python date calculator (deterministic, no LLM)
-        ├── extractor_evaluator/   # Node 3: LLM-based validation with feedback generation
         ├── classifier/            # Classifies question type into 5 categories
         ├── metrics_query_handler/
         ├── compare_query_handler/

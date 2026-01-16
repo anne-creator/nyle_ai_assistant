@@ -9,11 +9,8 @@ from app.metricsAccessLayer import metrics_api
 from app.context import set_jwt_token_for_task
 from app.graph.nodes.classifier_route_node.insight_query_handler.prompt import (
     INSIGHT_INTENT_PROMPT,
-    COMPARISON_EXPLANATION_PROMPT,
-    TREND_ANALYSIS_PROMPT
+    COMPARISON_EXPLANATION_PROMPT
 )
-from app.utils.trend_metrics_fetcher import fetch_trend_metrics
-from app.utils.button_helpers import create_set_goal_button
 
 logger = logging.getLogger(__name__)
 
@@ -225,111 +222,6 @@ Comparison period ({data['period_b_start']} to {data['period_b_end']}):
     return response.content.strip()
 
 
-def _generate_trend_analysis_response(data: dict, question: str) -> str:
-    """
-    Generate LLM analysis for trend data.
-    
-    Uses TREND_ANALYSIS_PROMPT to identify trends in net profit,
-    correlate with other metrics, and explain root causes.
-    """
-    settings = get_settings()
-    llm = ChatOpenAI(
-        model=settings.openai_model,
-        temperature=0.3,
-        api_key=settings.openai_api_key,
-        streaming=True
-    )
-    
-    prompt = f"""{TREND_ANALYSIS_PROMPT}
-
-**Daily Metrics Data:**
-{data['text']}
-
-**Summary Statistics:**
-- Net Profit: Sum=${data['stats']['profit']['sum']:,}, Avg=${data['stats']['profit']['avg']:,}, Max=${data['stats']['profit']['max']:,}, Min=${data['stats']['profit']['min']:,}
-- Total Sales: Sum=${data['stats']['sales']['sum']:,}, Avg=${data['stats']['sales']['avg']:,}
-- ACOS Avg: {data['stats']['acos_avg']:.2f}%
-- Ad TOS IS Avg: {data['stats']['ad_tos_is_avg']:.2f}%
-- ROI Avg: {data['stats']['roi_avg']:.2f}%
-
-**User Question:** {question}
-
-**Analysis:**"""
-    
-    response = llm.invoke(prompt)
-    return response.content.strip()
-
-
-def _calculate_next_period(date_end: str) -> tuple[str, str]:
-    """
-    Calculate the next recommended goal period.
-    Starts the day after analysis period ends, with a 15-day window.
-    """
-    end = datetime.strptime(date_end, "%Y-%m-%d")
-    next_start = end + timedelta(days=1)
-    next_end = next_start + timedelta(days=14)  # 15-day window
-    return next_start.strftime("%Y-%m-%d"), next_end.strftime("%Y-%m-%d")
-
-
-async def _get_optimization_potential(
-    date_start: str, 
-    date_end: str, 
-    asin: str = None
-) -> str:
-    """
-    Get optimization potential by calling optimal_goals API.
-    
-    Returns formatted text with ACOS recommendation only.
-    Provides forward-looking goal suggestion for the next period.
-    """
-    try:
-        # Fetch optimal goals
-        optimal = await metrics_api.get_optimal_goals(date_start, date_end, asin=asin)
-        
-        if not isinstance(optimal, dict):
-            logger.warning(f"Invalid optimal_goals response: {optimal}")
-            return ""
-        
-        # Extract ACOS value only
-        acos_value = optimal.get("acos")
-        
-        # Skip if ACOS is None or 0
-        if acos_value is None or acos_value == 0:
-            return ""
-        
-        # Calculate the next period for recommendations
-        next_start, next_end = _calculate_next_period(date_end)
-        next_period_range = _format_date_range(next_start, next_end)
-        
-        # Round ACOS to whole number for display and button
-        acos_rounded = round(acos_value)
-        acos_formatted = f"{acos_rounded}%"
-        
-        # Create the set_goal button with ACOS and next period dates
-        button_markup = create_set_goal_button(
-            metric_name="acos",
-            metric_value=acos_rounded,
-            date_start=next_start,
-            date_end=next_end
-        )
-        
-        # Build the forward-looking recommendation text with button
-        optimization_text = (
-            f"Looking ahead, I want to help you stabilize your business performance. "
-            f"Based on scenario simulations combining your historical data patterns with predictive modeling.\n\n"
-            f"Recommended goals ({next_period_range}):\n"
-            f"ACOS: {acos_formatted}\n\n"
-            f"Would you like me to update this goal for you?\n\n"
-            f"{button_markup}"
-        )
-        
-        return optimization_text
-        
-    except Exception as e:
-        logger.warning(f"Error getting optimization potential: {e}")
-        return ""
-
-
 async def insight_query_handler_node(state: AgentState) -> AgentState:
     """
     Handler for insight_query type questions.
@@ -355,26 +247,10 @@ async def insight_query_handler_node(state: AgentState) -> AgentState:
         data = await _execute_net_profit_loss_pipeline(state)
         response = _format_net_profit_response(data)
     elif insight_intent == "trend_analysis":
-        # Use reusable trend metrics fetcher tool
-        date_start = state["date_start"]
-        date_end = state["date_end"]
-        asin = state.get("asin")
-        
-        data = await fetch_trend_metrics(
-            date_start,
-            date_end,
-            timespan="day",
-            asin=asin
-        )
-        
-        # Generate trend analysis from LLM
-        trend_response = _generate_trend_analysis_response(data, question)
-        
-        # Fetch optimization potential data
-        optimization_text = await _get_optimization_potential(date_start, date_end, asin)
-        
-        # Combine trend analysis + optimization potential
-        response = trend_response + "\n\n" + optimization_text
+        # Use reusable trend analyzing handler node
+        from app.graph.nodes.node_utils.trend_analyzing_handler import trend_analyzing_handler_node
+        result = await trend_analyzing_handler_node(state)
+        response = result["response"]
     else:  # comparison
         data = await _execute_comparison_pipeline(state)
         response = _generate_comparison_explanation(data, question)

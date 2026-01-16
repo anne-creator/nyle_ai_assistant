@@ -6,6 +6,35 @@ Handles ASIN-level queries including:
 - Ranking queries (top/bottom N products)
 """
 
+# Sub-classification prompt for ASIN queries
+ASIN_QUERY_TYPE_PROMPT = """Classify this ASIN-related question into ONE type:
+
+**Types:**
+
+1. **insights** - Questions asking about trends, patterns, insights, or what happened over a period for a specific ASIN
+Examples:
+- "Show me some insights about product ASIN B0160HYB8S from Oct 1 to Oct 30"
+- "Give me insights for ASIN B08XYZ123 last month"
+- "What happened to ASIN B0DP55J8ZG in October?"
+- "Analyze trends for product B0160HYB8S from Oct 1-30"
+- "How did ASIN B08XYZ123 perform over the past 2 weeks"
+
+2. **metrics** - Questions asking for specific metrics, sales numbers, or rankings for ASINs
+Examples:
+- "What are sales for ASIN B0B5HN65QQ?"
+- "What are my top 5 selling ASINs?"
+- "Which product has the highest ROI?"
+- "How many units of B08XYZ123 did I sell yesterday?"
+- "What's the ACOS for ASIN B0160HYB8S?"
+
+**Key Distinction:**
+- **insights**: Asks about trends/patterns/what happened (uses "insights", "trends", "analyze", "what happened", "how did [ASIN] perform")
+- **metrics**: Asks for specific numbers/values/rankings (uses "what are", "how many", "which product", "top N")
+
+**Question:** {question}
+
+**Return ONLY the type name (no explanation).**"""
+
 ASIN_PRODUCT_SYSTEM_PROMPT = """You are an Amazon seller analytics assistant for ASIN-level queries.
 
 ## Your Role
